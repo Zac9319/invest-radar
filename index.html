@@ -1,0 +1,1392 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#0b0f17">
+<title>投資雷達 Pro · 加密貨幣 × 美股</title>
+<script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
+<style>
+:root{--bg:#0b0f17;--card:#131a26;--card2:#18212f;--line:#243044;--text:#e6ebf2;--mute:#8a97ab;--accent:#f5b942;--blue:#4f8cff;--up:#ef4444;--down:#22c55e;--r:14px;--fs:15px}
+:root.intl{--up:#22c55e;--down:#ef4444}
+:root.light{--bg:#f3f5f9;--card:#fff;--card2:#f0f3f8;--line:#dfe5ee;--text:#151b26;--mute:#667388}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--text);font:var(--fs)/1.45 -apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif}
+body{max-width:600px;margin:0 auto;padding-bottom:84px}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+input,select{font:inherit;color:var(--text);background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:8px 10px;width:100%}
+a{color:var(--blue);text-decoration:none}
+.up{color:var(--up)}.down{color:var(--down)}.mute{color:var(--mute)}.warn{color:var(--accent)}
+.num{font-variant-numeric:tabular-nums}
+header{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(10px);padding:12px 14px 8px;border-bottom:1px solid var(--line)}
+.hrow{display:flex;align-items:center;gap:8px}
+.logo{font-weight:800;font-size:18px}.logo span{color:var(--accent)}.logo sup{font-size:10px;color:var(--mute);margin-left:2px}
+.hbtn{width:34px;height:34px;border-radius:10px;background:var(--card);display:grid;place-items:center;font-size:16px}
+.ticker{display:flex;gap:14px;overflow-x:auto;margin-top:8px;font-size:13px;scrollbar-width:none}
+.ticker::-webkit-scrollbar{display:none}.ticker div{white-space:nowrap}
+.updated{font-size:11px;color:var(--mute);margin-left:auto}
+main{padding:12px}
+section.tab{display:none}section.tab.on{display:block}
+h2{font-size:15px;margin:18px 2px 8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+h2 small{font-weight:400;color:var(--mute);font-size:12px}h2 .sp{flex:1}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.kcard{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px}
+.kcard .l{font-size:12px;color:var(--mute)}.kcard .v{font-size:18px;font-weight:700;margin:2px 0}.kcard .c{font-size:12px}
+.row{display:flex;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid var(--line);cursor:pointer}
+.row:last-child{border-bottom:0}
+.row img{width:22px;height:22px;border-radius:50%}
+.row .nm{flex:1;min-width:0}.row .nm b{display:block;font-size:14px}.row .nm span{font-size:11px;color:var(--mute)}
+.row .px{text-align:right;font-size:14px;white-space:nowrap}.row .px div+div{font-size:12px}
+.tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.tag{font-size:11px;padding:1px 7px;border-radius:999px;background:var(--card2);border:1px solid var(--line);color:var(--mute);white-space:nowrap}
+.tag.up{color:var(--up);border-color:color-mix(in srgb,var(--up) 45%,transparent);background:color-mix(in srgb,var(--up) 10%,transparent)}
+.tag.down{color:var(--down);border-color:color-mix(in srgb,var(--down) 45%,transparent);background:color-mix(in srgb,var(--down) 10%,transparent)}
+.tag.warn{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 45%,transparent)}
+.act{font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;white-space:nowrap}
+.act.up{background:color-mix(in srgb,var(--up) 18%,transparent)}.act.down{background:color-mix(in srgb,var(--down) 18%,transparent)}
+.act.warn{background:color-mix(in srgb,var(--accent) 18%,transparent);color:var(--accent)}.act.flat{background:var(--card2);color:var(--mute)}
+.adv{font-size:12px;margin-top:4px}.adv em{font-style:normal;color:var(--mute)}
+.alerts .al{display:flex;gap:8px;padding:9px 10px;border-radius:10px;background:var(--card2);margin-bottom:6px;font-size:13px}
+.alerts .al b{white-space:nowrap}
+.meta{font-size:12px;color:var(--mute);display:grid;grid-template-columns:auto auto;gap:2px 10px}
+.meta b{color:var(--text);font-weight:600;text-align:right}
+.seg{display:flex;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:3px;gap:3px;margin-bottom:10px}
+.seg button{flex:1;padding:6px 2px;border-radius:8px;font-size:13px;color:var(--mute)}
+.seg button.on{background:var(--card2);color:var(--text);font-weight:600}
+nav{position:fixed;bottom:0;left:0;right:0;z-index:30;background:color-mix(in srgb,var(--bg) 94%,transparent);backdrop-filter:blur(10px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+nav .in{max-width:600px;margin:0 auto;display:flex}
+nav button{flex:1;padding:8px 0 10px;font-size:11px;color:var(--mute);display:flex;flex-direction:column;align-items:center;gap:2px;position:relative}
+nav button i{font-style:normal;font-size:19px;line-height:1.2}nav button.on{color:var(--accent)}
+nav .dot{position:absolute;top:4px;left:calc(50% + 6px);min-width:16px;height:16px;border-radius:8px;background:var(--up);color:#fff;font-size:10px;display:grid;place-items:center;padding:0 3px}
+.btn{background:var(--accent);color:#111;font-weight:700;border-radius:10px;padding:9px 14px}
+.btn.ghost{background:var(--card2);color:var(--text);border:1px solid var(--line);font-weight:500}
+.btn.sm{padding:5px 10px;font-size:12px}
+.field{margin-bottom:10px}.field label{display:block;font-size:12px;color:var(--mute);margin-bottom:4px}
+.flex{display:flex;gap:8px;align-items:center}
+.note{font-size:12px;color:var(--mute);line-height:1.6}
+.empty{padding:20px;text-align:center;color:var(--mute);font-size:13px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{color:var(--mute);font-weight:500;text-align:right;padding:6px 4px;font-size:12px}
+td{text-align:right;padding:8px 4px;border-top:1px solid var(--line)}
+th:first-child,td:first-child{text-align:left}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:50;display:none;align-items:flex-end;justify-content:center}
+.modal.on{display:flex}
+.sheet{background:var(--bg);width:100%;max-width:600px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:14px;border:1px solid var(--line)}
+.chart{height:300px;margin:8px 0}
+.legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:11px;color:var(--mute)}
+.legend i{display:inline-block;width:10px;height:2px;vertical-align:middle;margin-right:4px}
+.star{font-size:18px;color:var(--mute);padding:0 4px}.star.on{color:var(--accent)}
+.toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:var(--card2);border:1px solid var(--line);padding:8px 14px;border-radius:10px;font-size:13px;z-index:60;display:none;max-width:90%}
+.spin{display:inline-block;animation:sp 1s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}
+.err{color:var(--accent);font-size:12px}
+.wide svg{width:100%;display:block}
+/* 體檢 */
+.hero{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:center}
+.verdict{font-size:16px;font-weight:800;line-height:1.35}
+.mbar{height:10px;border-radius:5px;background:linear-gradient(90deg,var(--down),var(--card2) 50%,var(--up));position:relative;margin:8px 0 4px}
+.mbar i{position:absolute;top:-4px;width:4px;height:18px;border-radius:2px;background:var(--text)}
+.layer{margin-bottom:10px}
+.lh{display:flex;align-items:center;gap:8px;margin-bottom:4px}.lh b{font-size:15px}.lh small{color:var(--mute);font-size:12px;flex:1}
+.pill{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.pill.up{background:color-mix(in srgb,var(--up) 18%,transparent);color:var(--up)}
+.pill.down{background:color-mix(in srgb,var(--down) 18%,transparent);color:var(--down)}
+.pill.flat{background:var(--card2);color:var(--mute)}
+.ind{display:flex;gap:10px;align-items:center;padding:9px 0;border-top:1px solid var(--line)}
+.ind .in{flex:1;min-width:0}.ind .in b{font-size:13px}.ind .in .v{font-size:13px;margin-left:6px}
+.ind .in em{display:block;font-style:normal;font-size:11px;color:var(--mute);margin-top:2px}
+.ind svg{flex:0 0 auto}
+/* 巨鯨 */
+.bar2{display:flex;height:8px;border-radius:4px;overflow:hidden;background:var(--card2);margin-top:4px}
+.bar2 i{display:block;height:100%}
+.feed .it{padding:9px 2px;border-bottom:1px solid var(--line);font-size:13px}
+.feed .it:last-child{border-bottom:0}
+.feed .it .t{font-size:11px;color:var(--mute)}
+.addr{font-family:ui-monospace,Menlo,monospace;font-size:12px}
+.heat{position:relative;height:420px;border-radius:12px;overflow:hidden;background:var(--card2)}
+.heat>div{position:absolute;border:1px solid var(--bg);padding:3px 4px;overflow:hidden;font-size:11px;line-height:1.25;color:#fff;cursor:pointer;text-shadow:0 1px 2px rgba(0,0,0,.5)}
+.heat b{display:block;font-size:12px}
+.pl{font-size:11px}
+.chk{display:flex;align-items:center;gap:6px;font-size:13px}.chk input{width:auto}
+</style>
+</head>
+<body>
+<header>
+  <div class="hrow">
+    <div class="logo">投資<span>雷達</span><sup>PRO</sup></div>
+    <div class="updated" id="updated">載入中…</div>
+    <button class="hbtn" id="refreshBtn" title="重新整理">⟳</button>
+    <button class="hbtn" id="setBtn" title="設定">⚙</button>
+  </div>
+  <div class="ticker num" id="ticker"></div>
+</header>
+
+<main>
+<!-- 體檢 -->
+<section class="tab" id="tab-health">
+  <div class="alerts" id="alerts"></div>
+  <div class="card">
+    <div class="hero">
+      <div id="tempGauge"></div>
+      <div>
+        <div class="note">週期溫度 · 越低越便宜</div>
+        <div class="verdict" id="verdict">計算中…</div>
+        <div class="note" style="margin-top:8px">資金動能 <b id="momVal" style="color:var(--text)">—</b></div>
+        <div class="mbar"><i id="momPin" style="left:50%"></i></div>
+        <div class="note" style="display:flex;justify-content:space-between"><span>資金流出</span><span>資金流入</span></div>
+      </div>
+    </div>
+    <div class="note" id="tempParts" style="margin-top:8px"></div>
+  </div>
+
+  <h2>週期溫度 vs BTC 價格 <small>近 4 年</small></h2>
+  <div class="card"><div class="chart" id="tempChart" style="height:240px"></div>
+    <div class="legend"><span><i style="background:#f5b942"></i>週期溫度（左軸 0–100）</span><span><i style="background:#8a97ab"></i>BTC 價格（右軸，對數）</span></div></div>
+
+  <h2>五層體檢 <small>每項燈號：偏多＝有利加碼，偏空＝風險升高</small></h2>
+  <div id="layers"></div>
+  <p class="note" style="margin-top:6px">數據：CoinMetrics 社群版、alternative.me、CoinGecko、Bybit、Deribit、DefiLlama、Twelve Data。指標只整理公開數據，不構成投資建議。</p>
+</section>
+
+<!-- 巨鯨 -->
+<section class="tab" id="tab-whale">
+  <div class="seg" id="whaleSeg">
+    <button data-v="hl" class="on">合約巨鯨</button>
+    <button data-v="dex">鏈上大額</button>
+    <button data-v="big">交易所大單</button>
+  </div>
+  <div id="whaleHL">
+    <div class="card note" id="whaleIntro">追蹤 Hyperliquid 上資金 ≥ 一百萬美元、而且有在交易的大戶（排除不交易的金庫與高頻做市商）。地址、持倉、成交都是鏈上公開資料。</div>
+    <div class="seg" id="whaleSort" style="margin-top:10px">
+      <button data-v="pnl" class="on">本月最賺</button>
+      <button data-v="size">資金最大</button>
+      <button data-v="week">本週最賺</button>
+    </div>
+    <h2>巨鯨 24 小時在買賣什麼 <small id="whaleFillNote"></small></h2>
+    <div class="card" id="whaleFlow"><div class="empty">切換到此分頁後開始載入…</div></div>
+    <h2>巨鯨目前持倉共識 <small>多空部位加總</small></h2>
+    <div class="card" id="whalePos"><div class="empty">載入中…</div></div>
+    <h2>大額動作 <small>單一巨鯨單一幣種 24h ≥ $10 萬</small></h2>
+    <div class="card feed" id="whaleFeed"><div class="empty">載入中…</div></div>
+    <h2>追蹤名單</h2>
+    <div class="card" id="whaleList"><div class="empty">載入中…</div></div>
+  </div>
+  <div id="whaleDEX" style="display:none">
+    <div class="card note">掃描該鏈 24h 成交量最大、流動性 ≥ $100 萬的交易池，列出單筆 ≥ 門檻的鏈上買賣。注意：大單也包含套利機器人與聚合器路由，要搭配錢包地址判斷。</div>
+    <div class="flex" style="margin:10px 0">
+      <select id="dexNet"><option value="eth">Ethereum</option><option value="solana">Solana</option><option value="base">Base</option><option value="bsc">BNB Chain</option><option value="arbitrum">Arbitrum</option></select>
+      <select id="dexMin"><option value="25000">≥ $2.5 萬</option><option value="50000">≥ $5 萬</option><option value="100000">≥ $10 萬</option><option value="250000">≥ $25 萬</option></select>
+      <button class="btn sm" id="dexGo">掃描</button>
+    </div>
+    <h2>鏈上大戶買賣了什麼</h2>
+    <div class="card" id="dexAgg"><div class="empty">選擇鏈後按「掃描」</div></div>
+    <h2>大額交易明細</h2>
+    <div class="card feed" id="dexFeed"></div>
+  </div>
+  <div id="whaleBIG" style="display:none">
+    <div class="card note">Bybit 永續合約最近 1,000 筆成交中的大單（主動買＝吃賣單往上買，主動賣＝砸買單）。看的是「當下這幾分鐘」大資金的方向。</div>
+    <div class="flex" style="margin:10px 0"><button class="btn sm" id="bigGo">重新抓取</button><span class="note" id="bigNote"></span></div>
+    <div id="bigOut"></div>
+  </div>
+</section>
+
+<!-- 市場 -->
+<section class="tab" id="tab-market">
+  <div class="seg" id="mkSeg">
+    <button data-v="list" class="on">排行</button>
+    <button data-v="heat">熱力圖</button>
+    <button data-v="sector">板塊輪動</button>
+    <button data-v="trend">熱搜</button>
+  </div>
+  <input id="coinFilter" placeholder="篩選名稱或代號，例如 SOL" style="margin-bottom:10px">
+  <div class="card" id="mkOut"><div class="empty">載入中…</div></div>
+</section>
+
+<!-- 持倉 -->
+<section class="tab" id="tab-hold">
+  <div class="grid2" id="holdSum"></div>
+  <h2>加密貨幣 <span class="sp"></span><button class="btn ghost sm" id="addCoinBtn">＋ 加入</button></h2>
+  <div class="card" id="holdCrypto"><div class="empty">載入中…</div></div>
+  <h2>美股 <span class="sp"></span><button class="btn ghost sm" id="addUsBtn">＋ 加入</button></h2>
+  <div class="card" id="holdUS"></div>
+  <p class="note" style="margin-top:8px">點一下可看 K 線；按「編輯」填入數量與成本，就會計算損益。操作提示依月線 MA20、季線 MA60、5／10 日線與跳空缺口自動判讀。</p>
+</section>
+
+<!-- 回測 -->
+<section class="tab" id="tab-test">
+  <h2>BTC 每週定投回測 <small>CoinMetrics 日線</small></h2>
+  <div class="card">
+    <div class="grid2">
+      <div class="field"><label>每週投入（USD）</label><input id="btAmt" type="number" value="100" min="1"></div>
+      <div class="field"><label>開始日期</label><input id="btStart" type="date" value="2018-02-05"></div>
+      <div class="field"><label>扣款日</label><select id="btDow"><option value="1">每週一</option><option value="3">每週三</option><option value="5">每週五</option><option value="0">每週日</option></select></div>
+      <div class="field"><label>手續費 %</label><input id="btFee" type="number" value="0.1" step="0.05" min="0"></div>
+    </div>
+    <label class="chk" style="margin-bottom:10px"><input type="checkbox" id="btSell" checked> 溫度策略在過熱時減碼（溫度 ≥ 80 時每週賣出 8% 持幣）</label>
+    <button class="btn" id="btRun" style="width:100%">開始回測</button>
+    <div id="btOut" style="margin-top:12px"></div>
+  </div>
+  <h2>策略規則</h2>
+  <div class="card note">
+    <p><b style="color:var(--text)">① 固定定投</b>：每週固定金額。</p>
+    <p style="margin-top:6px"><b style="color:var(--text)">② AHR999 加權</b>：&lt;0.45 投 2 倍、0.45–1.2 投 1 倍、&gt;1.2 暫停。</p>
+    <p style="margin-top:6px"><b style="color:var(--text)">③ 週期溫度</b>：溫度 &lt;20 投 3 倍、&lt;35 投 2 倍、&lt;50 投 1.25 倍、&lt;65 投 0.75 倍、&lt;80 投 0.25 倍、≥80 暫停（可選擇減碼）。</p>
+    <p style="margin-top:6px"><b style="color:var(--text)">④ 溫度＋動能</b>：在 ③ 的倍數上，資金動能 &gt; +20 再乘 1.3，&lt; −20 乘 0.7。</p>
+    <p style="margin-top:6px">歷史溫度只用得到 MVRV、AHR999、恐懼貪婪（資金費率與山寨季沒有長歷史）；歷史動能用價格 vs 200 日均線、穩定幣 30 日變化、交易所 30 日淨流量。回測只看過去，不代表未來，也不是投資建議。</p>
+  </div>
+</section>
+</main>
+
+<nav><div class="in">
+  <button data-tab="health" class="on"><i>◉</i>體檢</button>
+  <button data-tab="whale"><i>🐋</i>巨鯨</button>
+  <button data-tab="market"><i>₿</i>市場</button>
+  <button data-tab="hold"><i>▤</i>持倉<span class="dot" id="todoDot" style="display:none"></span></button>
+  <button data-tab="test"><i>⚗</i>回測</button>
+</div></nav>
+
+<div class="modal" id="modal"><div class="sheet" id="sheet"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+/* ================= 基礎 ================= */
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const store = {
+  get(k, d) { try { const v = localStorage.getItem('irp_' + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem('irp_' + k, JSON.stringify(v)); } catch (e) {} },
+  clearCache() { try { Object.keys(localStorage).filter(k => k.startsWith('irp_c_') || k.startsWith('irp_td_')).forEach(k => localStorage.removeItem(k)); } catch (e) {} }
+};
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const DAY = 86400, GENESIS = 1230940800;
+const dayOf = t => Math.floor(t / DAY) * DAY;
+
+const DEFAULT_SET = { tdKey: '', color: 'tw', theme: 'dark', fs: '15px', tempLow: 25, tempHigh: 75, whaleN: 20, whaleMin: 1e6, exHft: true };
+const DEFAULT_WL = {
+  crypto: [{ id: 'bitcoin', sym: 'BTC', name: 'Bitcoin' }, { id: 'ethereum', sym: 'ETH', name: 'Ethereum' }, { id: 'solana', sym: 'SOL', name: 'Solana' }],
+  us: ['NVDA', 'TSLA', 'MSTR', 'COIN']
+};
+const state = {
+  set: Object.assign({}, DEFAULT_SET, store.get('set', {})),
+  wl: store.get('wl', DEFAULT_WL),
+  hold: store.get('hold', {}),
+  errors: {}, bars: {}, usBars: {}, extraPx: {}
+};
+const saveSet = () => store.set('set', state.set);
+const saveWl = () => store.set('wl', state.wl);
+const saveHold = () => store.set('hold', state.hold);
+
+const fmt = {
+  price(n) {
+    if (n == null || !isFinite(n)) return '—';
+    const a = Math.abs(n), d = a >= 1000 ? 0 : a >= 1 ? 2 : a >= 0.01 ? 4 : 8;
+    return '$' + n.toLocaleString('en-US', { minimumFractionDigits: Math.min(d, 2), maximumFractionDigits: d });
+  },
+  big(n) {
+    if (n == null || !isFinite(n)) return '—';
+    const a = Math.abs(n), s = n < 0 ? '−' : '';
+    if (a >= 1e12) return s + '$' + (a / 1e12).toFixed(2) + 'T';
+    if (a >= 1e9) return s + '$' + (a / 1e9).toFixed(2) + 'B';
+    if (a >= 1e6) return s + '$' + (a / 1e6).toFixed(2) + 'M';
+    if (a >= 1e3) return s + '$' + (a / 1e3).toFixed(1) + 'K';
+    return s + '$' + Math.round(a);
+  },
+  sbig(n) { return n == null || !isFinite(n) ? '—' : (n >= 0 ? '+' : '−') + fmt.big(Math.abs(n)); },
+  pct(n, d = 2) { return n == null || !isFinite(n) ? '—' : (n > 0 ? '+' : '') + n.toFixed(d) + '%'; },
+  date(t) { const d = new Date(t * 1000); return d.getUTCFullYear() + '/' + String(d.getUTCMonth() + 1).padStart(2, '0') + '/' + String(d.getUTCDate()).padStart(2, '0'); },
+  ago(ms) { const m = Math.round((Date.now() - ms) / 60000); return m < 60 ? m + ' 分鐘前' : m < 1440 ? Math.round(m / 60) + ' 小時前' : Math.round(m / 1440) + ' 天前'; },
+  addr(a) { return a ? a.slice(0, 6) + '…' + a.slice(-4) : ''; }
+};
+const cls = n => n > 0 ? 'up' : n < 0 ? 'down' : '';
+function toast(msg, ms = 2500) { const t = $('#toast'); t.textContent = msg; t.style.display = 'block'; clearTimeout(t._h); t._h = setTimeout(() => t.style.display = 'none', ms); }
+
+/* ================= 網路 ================= */
+const mem = {};
+async function getJSON(url, ttl = 60e3, persist = false, opt) {
+  const k = 'c_' + url + (opt ? opt.body : ''), now = Date.now();
+  if (mem[k] && now - mem[k].t < ttl) return mem[k].d;
+  if (persist) { const c = store.get(k); if (c && now - c.t < ttl) { mem[k] = c; return c.d; } }
+  const r = await fetch(url, opt);
+  if (!r.ok) throw new Error('HTTP ' + r.status + ' · ' + new URL(url).host);
+  const d = await r.json();
+  mem[k] = { t: now, d };
+  if (persist) store.set(k, mem[k]);
+  return d;
+}
+async function pool(items, n, fn) {
+  const out = new Array(items.length); let i = 0;
+  await Promise.all(Array.from({ length: Math.min(n, items.length) }, async () => {
+    while (i < items.length) { const j = i++; try { out[j] = await fn(items[j], j); } catch (e) { out[j] = null; } }
+  }));
+  return out;
+}
+
+/* ================= 資料來源 ================= */
+const CG = 'https://api.coingecko.com/api/v3';
+const BY = 'https://api.bybit.com/v5/market/';
+const CM = 'https://community-api.coinmetrics.io/v4/timeseries/asset-metrics';
+const HL = 'https://api.hyperliquid.xyz/info';
+
+async function fetchFng() {
+  const j = await getJSON('https://api.alternative.me/fng/?limit=0', 30 * 60e3, true);
+  return j.data.map(d => ({ t: dayOf(+d.timestamp), v: +d.value })).sort((a, b) => a.t - b.t);
+}
+async function fetchMarkets() {
+  return getJSON(CG + '/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=true&price_change_percentage=24h,7d,30d', 3 * 60e3);
+}
+const fetchGlobal = async () => (await getJSON(CG + '/global', 5 * 60e3)).data;
+const fetchTrending = () => getJSON(CG + '/search/trending', 10 * 60e3);
+const fetchCategories = () => getJSON(CG + '/coins/categories', 15 * 60e3);
+async function fetchSimplePrices(ids) {
+  if (!ids.length) return {};
+  return getJSON(CG + '/simple/price?ids=' + ids.join(',') + '&vs_currencies=usd&include_24hr_change=true', 3 * 60e3);
+}
+async function cgDaily(id, days = 365) {
+  const j = await getJSON(CG + '/coins/' + id + '/market_chart?vs_currency=usd&days=' + days + '&interval=daily', 30 * 60e3);
+  const m = new Map();
+  j.prices.forEach(([ms, p]) => m.set(dayOf(ms / 1000), p));
+  return [...m.entries()].sort((a, b) => a[0] - b[0]).map(([t, c]) => ({ t, o: c, h: c, l: c, c }));
+}
+
+// CoinMetrics：BTC 價格、MVRV、交易所流量與餘額（2011 起）
+async function fetchCM(asset, metrics, start, ttlH = 6) {
+  const key = 'cm_' + asset + '_' + metrics.join('_');
+  const c = store.get('c_' + key);
+  if (c && Date.now() - c.t < ttlH * 3600e3) return c.d;
+  let url = CM + '?assets=' + asset + '&metrics=' + metrics.join(',') + '&start_time=' + start + '&page_size=10000';
+  const rows = [];
+  for (let i = 0; i < 5 && url; i++) {
+    const r = await fetch(url);
+    if (!r.ok) throw new Error('CoinMetrics HTTP ' + r.status);
+    const j = await r.json();
+    rows.push(...j.data);
+    url = j.next_page_url || null;
+  }
+  const d = rows.map(r => [dayOf(Date.parse(r.time) / 1000), ...metrics.map(m => r[m] == null ? null : +r[m])]);
+  store.set('c_' + key, { t: Date.now(), d });
+  return d;
+}
+const BTC_M = ['PriceUSD', 'CapMVRVCur', 'FlowInExUSD', 'FlowOutExUSD', 'SplyExNtv', 'CapMrktCurUSD'];
+async function fetchBtcChain() {
+  const d = await fetchCM('btc', BTC_M, '2011-01-01');
+  return d.filter(r => r[1] != null).map(r => ({ t: r[0], c: r[1], mvrv: r[2], fin: r[3], fout: r[4], exs: r[5], mcap: r[6] }));
+}
+async function fetchStable() {
+  const j = await getJSON('https://stablecoins.llama.fi/stablecoincharts/all', 6 * 3600e3);
+  return j.map(x => ({ t: dayOf(+x.date), v: x.totalCirculatingUSD?.peggedUSD ?? null })).filter(x => x.v);
+}
+async function by(path, ttl = 60e3) {
+  const j = await getJSON(BY + path, ttl);
+  if (j.retCode !== 0) throw new Error('Bybit：' + j.retMsg);
+  return j.result;
+}
+async function fetchDeriv(sym) {
+  const out = { sym };
+  const jobs = [
+    by('tickers?category=linear&symbol=' + sym).then(r => { const x = r.list[0]; out.fund = +x.fundingRate * 100; out.oiUsd = +x.openInterestValue; out.px = +x.lastPrice; out.chg24 = +x.price24hPcnt * 100; }),
+    by('funding/history?category=linear&symbol=' + sym + '&limit=21', 10 * 60e3).then(r => { const a = r.list.map(x => +x.fundingRate * 100); out.fund7 = a.reduce((s, x) => s + x, 0) / a.length; }),
+    by('open-interest?category=linear&symbol=' + sym + '&intervalTime=1d&limit=31', 30 * 60e3).then(r => { const a = r.list.map(x => +x.openInterest).reverse(); out.oiHist = a; out.oiChg30 = (a[a.length - 1] / a[0] - 1) * 100; }),
+    by('account-ratio?category=linear&symbol=' + sym + '&period=1d&limit=30', 30 * 60e3).then(r => { const a = r.list.map(x => +x.buyRatio).reverse(); out.lsHist = a; out.longAcc = a[a.length - 1] * 100; })
+  ];
+  await Promise.all(jobs.map(p => p.catch(() => {})));
+  return out;
+}
+async function fetchDvol(cur) {
+  const now = Date.now();
+  const j = await getJSON(`https://www.deribit.com/api/v2/public/get_volatility_index_data?currency=${cur}&resolution=86400&start_timestamp=${now - 120 * 864e5}&end_timestamp=${now}`, 30 * 60e3);
+  return j.result.data.map(d => ({ t: d[0] / 1000, c: d[4] }));
+}
+async function bybitKlines(sym) {
+  for (const cat of ['spot', 'linear']) {
+    try {
+      const r = await by('kline?category=' + cat + '&symbol=' + sym + 'USDT&interval=D&limit=1000', 30 * 60e3);
+      if (r.list && r.list.length >= 30) return r.list.map(k => ({ t: Math.floor(+k[0] / 1000), o: +k[1], h: +k[2], l: +k[3], c: +k[4], v: +k[5] })).reverse();
+    } catch (e) {}
+  }
+  return null;
+}
+async function coinBars(item) {
+  if (state.bars[item.id]) return state.bars[item.id];
+  let bars = await bybitKlines(item.sym.toUpperCase());
+  if (!bars) bars = await cgDaily(item.id, 365);
+  state.bars[item.id] = bars;
+  return bars;
+}
+/* Twelve Data（美股、總體） */
+async function tdFetch(symbols, onProgress) {
+  const key = state.set.tdKey;
+  if (!key) throw new Error('NO_KEY');
+  const out = {}, need = [];
+  for (const s of symbols) { const c = store.get('td_' + s); if (c && Date.now() - c.t < 15 * 60e3) out[s] = c.bars; else need.push(s); }
+  for (let i = 0; i < need.length; i += 8) {
+    if (i > 0) { onProgress && onProgress('Twelve Data 免費版每分鐘限 8 檔，約 60 秒後載入下一批…'); await sleep(62e3); }
+    const batch = need.slice(i, i + 8);
+    const r = await fetch('https://api.twelvedata.com/time_series?symbol=' + encodeURIComponent(batch.join(',')) + '&interval=1day&outputsize=300&apikey=' + encodeURIComponent(key));
+    const j = await r.json();
+    if (j.status === 'error') throw new Error(j.message || 'Twelve Data 錯誤');
+    for (const s of batch) {
+      const d = batch.length === 1 ? j : j[s];
+      if (!d || d.status !== 'ok' || !d.values) { out[s] = null; state.errors['td_' + s] = (d && d.message) || '無資料'; continue; }
+      const bars = d.values.map(v => ({ t: Math.floor(Date.parse(v.datetime + 'T00:00:00Z') / 1000), o: +v.open, h: +v.high, l: +v.low, c: +v.close })).sort((a, b) => a.t - b.t);
+      out[s] = bars; store.set('td_' + s, { t: Date.now(), bars });
+    }
+  }
+  return out;
+}
+const MACRO = [{ s: 'UUP', n: '美元指數 ETF', inv: true }, { s: 'TLT', n: '美國長債 ETF', inv: false }, { s: 'QQQ', n: '那斯達克 100', inv: false }, { s: 'SPY', n: 'S&P 500', inv: false }];
+
+/* ================= 指標 ================= */
+function sma(arr, n) {
+  const out = new Array(arr.length).fill(null); let s = 0;
+  for (let i = 0; i < arr.length; i++) { s += arr[i]; if (i >= n) s -= arr[i - n]; if (i >= n - 1) out[i] = s / n; }
+  return out;
+}
+function rsi(c, n = 14) {
+  if (c.length <= n) return null;
+  let g = 0, l = 0;
+  for (let i = 1; i <= n; i++) { const d = c[i] - c[i - 1]; d > 0 ? g += d : l -= d; }
+  g /= n; l /= n;
+  for (let i = n + 1; i < c.length; i++) { const d = c[i] - c[i - 1]; g = (g * (n - 1) + Math.max(d, 0)) / n; l = (l * (n - 1) + Math.max(-d, 0)) / n; }
+  return l === 0 ? 100 : 100 - 100 / (1 + g / l);
+}
+function ahrCalc(bars) { // bars: [{t,c}] 每日
+  const out = new Map(), S = [0];
+  for (const b of bars) S.push(S[S.length - 1] + Math.log(b.c));
+  for (let i = 199; i < bars.length; i++) {
+    const gm = Math.exp((S[i + 1] - S[i - 199]) / 200);
+    const fit = Math.pow(10, 5.84 * Math.log10((bars[i].t - GENESIS) / DAY) - 17.01);
+    out.set(bars[i].t, { v: (bars[i].c / gm) * (bars[i].c / fit), gm, fit });
+  }
+  return out;
+}
+// 週期溫度各分項 → 0~100
+const T = {
+  mvrv: m => clamp((m - 0.8) / (3.5 - 0.8)) * 100,
+  ahr: a => clamp((Math.log(a) - Math.log(0.3)) / (Math.log(4) - Math.log(0.3))) * 100,
+  fng: f => f,
+  fund: apr => clamp((apr + 10) / 50) * 100,
+  alt: a => a
+};
+const TW = { mvrv: 30, ahr: 25, fng: 20, fund: 15, alt: 10 };
+function tempOf(parts) {
+  let s = 0, w = 0;
+  for (const k in TW) if (parts[k] != null && isFinite(parts[k])) { s += T[k](parts[k]) * TW[k]; w += TW[k]; }
+  return w ? s / w : null;
+}
+function tempZh(v) { return v < 20 ? '極冷' : v < 40 ? '偏冷' : v < 60 ? '溫和' : v < 80 ? '偏熱' : '過熱'; }
+// 動能各分項 → -1~1
+const M = {
+  trend: (p, ma) => clamp((p / ma - 1) / 0.25, -1, 1),
+  stable: chg => clamp(chg / 4, -1, 1),
+  exflow: pctOfCap => clamp(pctOfCap / 0.5, -1, 1),
+  macro: x => clamp(x, -1, 1)
+};
+function momOf(parts) { const v = Object.values(parts).filter(x => x != null && isFinite(x)); return v.length ? v.reduce((a, b) => a + b, 0) / v.length * 100 : null; }
+
+// 建立每日歷史序列：溫度與動能
+function buildHistory() {
+  const b = state.btc; if (!b) return null;
+  const ahr = ahrCalc(b);
+  const ma200 = sma(b.map(x => x.c), 200);
+  const fngMap = new Map((state.fng || []).map(f => [f.t, f.v]));
+  const stMap = new Map((state.stable || []).map(s => [s.t, s.v]));
+  const out = [];
+  let netWin = [];
+  for (let i = 0; i < b.length; i++) {
+    const x = b[i];
+    const net = x.fout != null && x.fin != null ? x.fout - x.fin : null;
+    netWin.push(net); if (netWin.length > 30) netWin.shift();
+    if (i < 200) continue;
+    let f7 = null, fs = 0, fn = 0;
+    for (let k = 0; k < 7; k++) { const v = fngMap.get(x.t - k * DAY); if (v != null) { fs += v; fn++; } }
+    if (fn) f7 = fs / fn;
+    const a = ahr.get(x.t);
+    const temp = tempOf({ mvrv: x.mvrv, ahr: a?.v, fng: f7 });
+    const st = stMap.get(x.t), st30 = stMap.get(x.t - 30 * DAY);
+    const nets = netWin.filter(v => v != null);
+    const mom = momOf({
+      trend: ma200[i] ? M.trend(x.c, ma200[i]) : null,
+      stable: st && st30 ? M.stable((st / st30 - 1) * 100) : null,
+      exflow: nets.length >= 20 && x.mcap ? M.exflow(nets.reduce((s, v) => s + v, 0) / x.mcap * 100) : null
+    });
+    out.push({ t: x.t, c: x.c, temp, mom, ahr: a?.v, mvrv: x.mvrv, f7 });
+  }
+  return out;
+}
+
+/* 均線訊號、缺口、操作提示（持倉用） */
+function findGap(bars) {
+  const n = bars.length;
+  for (let i = n - 1; i >= Math.max(1, n - 20); i--) {
+    const b = bars[i], p = bars[i - 1];
+    if (b.h === b.l && p.h === p.l) continue;
+    if (b.h < p.l) { let f = false; for (let j = i + 1; j < n; j++) if (bars[j].h >= p.l) { f = true; break; } if (!f) return { dir: -1, lo: b.h, hi: p.l }; }
+    if (b.l > p.h) { let f = false; for (let j = i + 1; j < n; j++) if (bars[j].l <= p.h) { f = true; break; } if (!f) return { dir: 1, lo: p.h, hi: b.l }; }
+  }
+  return null;
+}
+function advice(last, a5, a10, a20, a60, gap) {
+  const P = fmt.price; let r;
+  if (a60 != null && last < a60) r = { t: '波段結束', c: 'down', n: `跌破季線，反彈壓力 MA20 ${P(a20)}、MA60 ${P(a60)}` };
+  else if (a20 != null && last < a20) r = { t: '轉弱觀察', c: 'warn', n: a60 != null ? `守季線 ${P(a60)}，站回月線 ${P(a20)} 再加碼` : `站回月線 ${P(a20)} 前先觀望` };
+  else if (a5 != null && a10 != null && a20 != null && last > a5 && a5 > a10 && a10 > a20) r = { t: '強勢續抱', c: 'up', n: `沿 5 日線走，跌破 MA10 ${P(a10)} 減碼` };
+  else if (a20 != null) r = { t: '續抱', c: 'up', n: `守月線 MA20 ${P(a20)}` };
+  else r = { t: '資料不足', c: 'flat', n: '' };
+  if (gap) r.n += (r.n ? ' · ' : '') + (gap.dir < 0 ? `空方缺口未封閉 ${P(gap.lo)}–${P(gap.hi)}` : `多方缺口支撐 ${P(gap.lo)}–${P(gap.hi)}`);
+  return r;
+}
+function signals(bars) {
+  if (!bars || bars.length < 25) return null;
+  const c = bars.map(b => b.c), n = c.length, last = c[n - 1];
+  const m5 = sma(c, 5), m10 = sma(c, 10), m20 = sma(c, 20), m60 = sma(c, 60), m200 = sma(c, 200);
+  const chg = k => n > k ? (last / c[n - 1 - k] - 1) * 100 : null;
+  const crossed = (arr, dir, within) => {
+    for (let i = n - 1; i >= Math.max(1, n - within); i--) {
+      if (arr[i] == null || arr[i - 1] == null) continue;
+      if (dir > 0 && c[i - 1] < arr[i - 1] && c[i] >= arr[i]) return true;
+      if (dir < 0 && c[i - 1] > arr[i - 1] && c[i] <= arr[i]) return true;
+    }
+    return false;
+  };
+  const tags = [];
+  const a20 = m20[n - 1], a60 = m60[n - 1], a200 = m200[n - 1];
+  let fresh = null;
+  if (crossed(m200, 1, 5)) fresh = { t: '站上年線', c: 'up' };
+  else if (crossed(m200, -1, 5)) fresh = { t: '跌破年線', c: 'down' };
+  else if (crossed(m20, 1, 3)) fresh = { t: '站回月線', c: 'up' };
+  else if (crossed(m20, -1, 3)) fresh = { t: '跌破月線', c: 'down' };
+  if (fresh) tags.push(fresh);
+  if (a200 != null && last > a20 && a20 > a60 && a60 > a200) tags.push({ t: '多頭排列', c: 'up' });
+  else if (a200 != null && last < a20 && a20 < a60 && a60 < a200) tags.push({ t: '空頭排列', c: 'down' });
+  if (a200 != null) tags.push(last >= a200 ? { t: '年線上', c: 'up' } : { t: '年線下', c: 'down' });
+  const prevMax = Math.max(...c.slice(-21, -1)), prevMin = Math.min(...c.slice(-21, -1));
+  if (last > prevMax) tags.push({ t: '突破 20 日高', c: 'up' });
+  if (last < prevMin) tags.push({ t: '跌破 20 日低', c: 'down' });
+  const r = rsi(c);
+  if (r != null && r >= 70) tags.push({ t: 'RSI 過熱 ' + r.toFixed(0), c: 'warn' });
+  if (r != null && r <= 30) tags.push({ t: 'RSI 超賣 ' + r.toFixed(0), c: 'warn' });
+  const gap = findGap(bars);
+  if (gap) tags.push(gap.dir < 0 ? { t: '空方缺口', c: 'down' } : { t: '多方缺口', c: 'up' });
+  const adv = advice(last, m5[n - 1], m10[n - 1], a20, a60, gap);
+  return { last, chg1: chg(1), chg5: chg(5), chg20: chg(20), rsi: r, m5: m5[n - 1], m10: m10[n - 1], m20: a20, m60: a60, m200: a200, tags, adv, fresh, gap };
+}
+
+/* ================= 小元件 ================= */
+function spark(vals, w = 90, h = 28, color) {
+  vals = (vals || []).filter(v => v != null && isFinite(v));
+  if (vals.length < 2) return `<svg width="${w}" height="${h}"></svg>`;
+  const mn = Math.min(...vals), mx = Math.max(...vals), r = mx - mn || 1;
+  const pts = vals.map((v, i) => (i / (vals.length - 1) * w).toFixed(1) + ',' + (h - (v - mn) / r * (h - 2) - 1).toFixed(1)).join(' ');
+  const col = color || (vals[vals.length - 1] >= vals[0] ? 'var(--up)' : 'var(--down)');
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><polyline fill="none" stroke="${col}" stroke-width="1.5" points="${pts}"/></svg>`;
+}
+function gauge(v, label) {
+  const W = 150, R = 60, cx = 75, cy = 72;
+  const arc = (a0, a1, col) => { const p = a => [cx + R * Math.cos(Math.PI * (1 - a)), cy - R * Math.sin(Math.PI * (1 - a))]; const [x0, y0] = p(a0), [x1, y1] = p(a1); return `<path d="M${x0},${y0} A${R},${R} 0 0 1 ${x1},${y1}" stroke="${col}" stroke-width="12" fill="none"/>`; };
+  const segs = [[0, .2, '#16a34a'], [.2, .4, '#84cc16'], [.4, .6, '#eab308'], [.6, .8, '#f97316'], [.8, 1, '#ef4444']];
+  const vv = v == null ? 50 : v;
+  const a = Math.PI * (1 - vv / 100), nx = cx + (R - 18) * Math.cos(a), ny = cy - (R - 18) * Math.sin(a);
+  return `<svg width="${W}" height="108" viewBox="0 0 ${W} 108">${segs.map(s => arc(s[0] + .005, s[1] - .005, s[2])).join('')}
+    <line x1="${cx}" y1="${cy}" x2="${nx}" y2="${ny}" stroke="var(--text)" stroke-width="3" stroke-linecap="round"/><circle cx="${cx}" cy="${cy}" r="5" fill="var(--text)"/>
+    <text x="${cx}" y="${cy + 17}" text-anchor="middle" fill="var(--text)" font-size="17" font-weight="800">${v == null ? '—' : Math.round(v)}</text>
+    <text x="${cx}" y="${cy + 22 + 10}" text-anchor="middle" fill="var(--mute)" font-size="11">${esc(label || '')}</text></svg>`;
+}
+const tagHtml = t => `<span class="tag ${t.c}">${esc(t.t)}</span>`;
+const LIGHT = { up: '偏多', down: '偏空', flat: '中性' };
+
+/* ================= 體檢：計算 ================= */
+const STABLE_RE = /usd|dai|fdusd|tusd|pyusd|eurc|usde|usds/i;
+const WRAP_RE = /wrapped|staked|bridged|restaked|liquid|wbtc|weth|cbbtc|steth|weeth|rseth|wbeth/i;
+function altIndex() {
+  const m = state.markets; if (!m) return null;
+  const btc = m.find(x => x.id === 'bitcoin'); if (!btc) return null;
+  const b30 = btc.price_change_percentage_30d_in_currency;
+  const list = m.filter(x => x.id !== 'bitcoin' && !(Math.abs(x.current_price - 1) < 0.03 && STABLE_RE.test(x.symbol + x.name)) && !WRAP_RE.test(x.id + ' ' + x.name) && x.price_change_percentage_30d_in_currency != null).slice(0, 50);
+  if (list.length < 20) return null;
+  return list.filter(x => x.price_change_percentage_30d_in_currency > b30).length / list.length * 100;
+}
+function computeHealth() {
+  const H = { layers: [], parts: {}, mparts: {} };
+  const b = state.btc, hist = state.hist;
+  const last = b ? b.filter(x => x.mvrv != null).at(-1) : null;
+  const hl = hist ? hist[hist.length - 1] : null;
+  const ind = (name, val, sub, light, how, sp, spc) => ({ name, val, sub, light, how, sp, spc });
+
+  // 1 鏈上估值
+  const L1 = [];
+  if (last) {
+    const realized = last.c / last.mvrv;
+    H.parts.mvrv = last.mvrv;
+    L1.push(ind('MVRV', last.mvrv.toFixed(2), '已實現價格（全網平均成本）' + fmt.price(realized), last.mvrv < 1 ? 'up' : last.mvrv > 3 ? 'down' : 'flat',
+      '市值 ÷ 全網持幣成本。<1 代表多數人虧損（歷史大底區），>3 歷史上接近頂部。', b.slice(-365).map(x => x.mvrv)));
+    if (hl && hl.ahr != null) {
+      H.parts.ahr = hl.ahr;
+      const am = state.ahrMap.get(hl.t);
+      L1.push(ind('AHR999', hl.ahr.toFixed(3), '200 日定投成本 ' + fmt.price(am?.gm), hl.ahr < 0.45 ? 'up' : hl.ahr > 1.2 ? 'down' : 'flat',
+        '<0.45 抄底區、0.45–1.2 定投區、>1.2 偏貴。', hist.slice(-365).map(x => x.ahr)));
+    }
+    const ex = b.filter(x => x.exs != null);
+    if (ex.length > 31) {
+      const e1 = ex[ex.length - 1], e0 = ex[ex.length - 31], ch = (e1.exs / e0.exs - 1) * 100;
+      L1.push(ind('交易所 BTC 餘額', (e1.exs / 1e6).toFixed(2) + 'M BTC', '30 日 ' + fmt.pct(ch), ch < -1 ? 'up' : ch > 1 ? 'down' : 'flat',
+        '幣持續離開交易所＝傾向長抱；大量流入＝潛在賣壓。', ex.slice(-180).map(x => x.exs), ));
+    }
+  }
+  H.layers.push({ k: 'chain', n: '鏈上估值', s: '貴不貴', items: L1 });
+
+  // 2 資金流
+  const L2 = [];
+  if (state.stable && state.stable.length > 31) {
+    const s = state.stable, s1 = s[s.length - 1], s0 = s[s.length - 31], ch = (s1.v / s0.v - 1) * 100;
+    H.mparts.stable = M.stable(ch);
+    L2.push(ind('穩定幣總供給', fmt.big(s1.v), '30 日 ' + fmt.pct(ch), ch > 2 ? 'up' : ch < 0 ? 'down' : 'flat',
+      '場內的「子彈」。持續增加代表新資金進場。', s.slice(-180).map(x => x.v)));
+  }
+  if (b) {
+    const fl = b.filter(x => x.fin != null && x.fout != null);
+    if (fl.length > 30) {
+      const w = fl.slice(-30), net = w.reduce((s, x) => s + x.fout - x.fin, 0), pc = net / fl[fl.length - 1].mcap * 100;
+      H.mparts.exflow = M.exflow(pc);
+      let cum = 0; const cs = fl.slice(-180).map(x => (cum += x.fout - x.fin));
+      L2.push(ind('交易所 30 日淨流量', (net >= 0 ? '流出 ' : '流入 ') + fmt.big(Math.abs(net)), '佔市值 ' + pc.toFixed(2) + '%', pc > 0.1 ? 'up' : pc < -0.1 ? 'down' : 'flat',
+        '淨流出＝買了提走（偏多）；淨流入＝準備賣（偏空）。', cs, 'var(--accent)'));
+    }
+    const ma = sma(b.map(x => x.c), 200), p = b[b.length - 1].c, m = ma[ma.length - 1];
+    if (m) {
+      H.mparts.trend = M.trend(p, m);
+      L2.push(ind('BTC vs 200 日均線', fmt.pct((p / m - 1) * 100, 1), '200 日均線 ' + fmt.price(m), p > m ? 'up' : 'down',
+        '站上 200 日線＝長期趨勢向上；跌破常是熊市確認。', b.slice(-365).map(x => x.c)));
+    }
+  }
+  H.layers.push({ k: 'flow', n: '資金流', s: '錢進還是錢出', items: L2 });
+
+  // 3 衍生品
+  const L3 = [], d = state.deriv?.BTCUSDT, de = state.deriv?.ETHUSDT;
+  if (d && d.fund != null) {
+    const apr7 = d.fund7 != null ? d.fund7 * 3 * 365 : null;
+    if (apr7 != null) H.parts.fund = apr7;
+    L3.push(ind('BTC 資金費率', d.fund.toFixed(4) + '%', '7 日平均年化 ' + (apr7 != null ? apr7.toFixed(1) + '%' : '—') + (de?.fund != null ? ' · ETH ' + de.fund.toFixed(4) + '%' : ''),
+      apr7 == null ? 'flat' : apr7 > 30 ? 'down' : apr7 < 0 ? 'up' : 'flat', '多單付費給空單的成本。年化 >30% 代表多頭擁擠；轉負代表空頭擁擠，常是短線低點。'));
+  }
+  if (d && d.oiChg30 != null && b) {
+    const p30 = (b[b.length - 1].c / b[Math.max(0, b.length - 31)].c - 1) * 100;
+    const risky = d.oiChg30 > 20 && p30 < 5, delev = d.oiChg30 < -15;
+    L3.push(ind('BTC 未平倉量', fmt.big(d.oiUsd), '30 日 ' + fmt.pct(d.oiChg30, 1) + '（價格 ' + fmt.pct(p30, 1) + '）', risky ? 'down' : delev ? 'up' : 'flat',
+      'OI 大增但價格沒漲＝槓桿堆積、容易插針；OI 大降＝去槓桿，風險釋放。', d.oiHist, 'var(--accent)'));
+  }
+  if (d && d.longAcc != null) {
+    L3.push(ind('散戶多空比', '做多帳戶 ' + d.longAcc.toFixed(1) + '%', 'Bybit 帳戶數比例', d.longAcc > 70 ? 'down' : d.longAcc < 45 ? 'up' : 'flat',
+      '逆向指標：多數散戶看多時常是反向訊號。', d.lsHist?.map(x => x * 100), 'var(--accent)'));
+  }
+  if (state.dvol?.length) {
+    const v = state.dvol, now = v[v.length - 1].c, mn = Math.min(...v.map(x => x.c)), mx = Math.max(...v.map(x => x.c));
+    L3.push(ind('BTC 隱含波動率 DVOL', now.toFixed(1), '近 120 日區間 ' + mn.toFixed(0) + '–' + mx.toFixed(0), now > mn + (mx - mn) * .8 ? 'up' : 'flat',
+      '選擇權市場預期的波動。極高＝恐慌（逆向偏多）；極低＝市場鬆懈，常在大行情前。', v.map(x => x.c), 'var(--accent)'));
+  }
+  H.layers.push({ k: 'deriv', n: '衍生品', s: '槓桿擁不擁擠', items: L3 });
+
+  // 4 情緒與輪動
+  const L4 = [];
+  if (state.fng?.length) {
+    const f = state.fng, n = f.length, cur = f[n - 1].v, f7 = f.slice(-7).reduce((s, x) => s + x.v, 0) / Math.min(7, n);
+    H.parts.fng = f7;
+    L4.push(ind('恐懼貪婪指數', cur + ' ' + fngZh(cur), '7 日平均 ' + f7.toFixed(0) + ' · 上週 ' + f[Math.max(0, n - 8)].v + ' · 上月 ' + f[Math.max(0, n - 31)].v,
+      cur <= 25 ? 'up' : cur >= 75 ? 'down' : 'flat', '別人恐懼時貪婪：≤25 歷史上多是好買點，≥75 留意過熱。', f.slice(-90).map(x => x.v), 'var(--accent)'));
+  }
+  const alt = altIndex();
+  if (alt != null) {
+    H.parts.alt = alt;
+    L4.push(ind('山寨季指數', alt.toFixed(0), '前 50 大幣中，30 日跑贏 BTC 的比例', alt >= 75 ? 'down' : 'flat',
+      '≥75 代表資金全面湧入小幣，通常是週期後段；低則是 BTC 主導。'));
+  }
+  if (state.global) {
+    const dom = state.global.market_cap_percentage.btc;
+    const m = state.markets || [], eth = m.find(x => x.id === 'ethereum'), btc = m.find(x => x.id === 'bitcoin');
+    const eb = eth && btc ? ((1 + eth.price_change_percentage_30d_in_currency / 100) / (1 + btc.price_change_percentage_30d_in_currency / 100) - 1) * 100 : null;
+    L4.push(ind('BTC 市佔率', dom.toFixed(1) + '%', 'ETH/BTC 30 日 ' + fmt.pct(eb, 1), 'flat',
+      '市佔率上升＝資金躲回 BTC（避險）；ETH/BTC 走強常是輪動到山寨的第一步。'));
+  }
+  H.layers.push({ k: 'senti', n: '情緒與輪動', s: '大家在想什麼', items: L4 });
+
+  // 5 總體
+  const L5 = [];
+  if (state.set.tdKey) {
+    const ms = [];
+    MACRO.forEach(x => {
+      const bars = state.usBars[x.s]; if (!bars || bars.length < 60) return;
+      const c = bars.map(z => z.c), n = c.length, p = c[n - 1], c20 = (p / c[n - 21] - 1) * 100, m50 = sma(c, 50)[n - 1];
+      let light;
+      if (x.inv) { light = c20 < -1 ? 'up' : c20 > 1 ? 'down' : 'flat'; ms.push(clamp(-c20 / 3, -1, 1)); }
+      else { light = p > m50 ? 'up' : 'down'; ms.push(clamp((p / m50 - 1) / 0.05, -1, 1)); }
+      L5.push(ind(x.n + ' ' + x.s, '$' + p.toFixed(2), '20 日 ' + fmt.pct(c20, 1) + ' · ' + (p > m50 ? '50 日線上' : '50 日線下'), light,
+        x.inv ? '美元走弱通常有利風險資產。' : x.s === 'TLT' ? '長債上漲＝殖利率下降，資金環境寬鬆。' : '美股強弱，與 BTC 高度相關時特別重要。', c.slice(-120)));
+    });
+    if (ms.length) H.mparts.macro = ms.reduce((a, b) => a + b, 0) / ms.length;
+  }
+  H.layers.push({ k: 'macro', n: '總體環境', s: '大環境的錢鬆不鬆', items: L5, needKey: !state.set.tdKey });
+
+  H.temp = tempOf(H.parts);
+  H.mom = momOf(H.mparts);
+  return H;
+}
+function fngZh(v) { return v <= 25 ? '極度恐懼' : v <= 45 ? '恐懼' : v <= 55 ? '中性' : v <= 75 ? '貪婪' : '極度貪婪'; }
+function verdictOf(t, m) {
+  if (t == null) return '資料載入中…';
+  const hot = t >= 65, cold = t < 35, up = (m ?? 0) > 0;
+  if (cold && up) return '低溫＋資金回流：歷史上較好的加碼環境';
+  if (cold) return '低溫但動能偏弱：適合分批定投，不必重押';
+  if (!hot && up) return '中溫、資金向上：續抱，回測支撐再加碼';
+  if (!hot) return '中溫、動能轉弱：控制部位，等待訊號';
+  if (up) return '高溫但仍在漲：續抱，開始分批停利';
+  return '高溫且動能轉弱：減碼、保護獲利';
+}
+
+/* ================= 體檢：畫面 ================= */
+let lastHealth = null;
+function renderHealth() {
+  const H = lastHealth = computeHealth();
+  $('#tempGauge').innerHTML = gauge(H.temp, H.temp == null ? '' : tempZh(H.temp));
+  $('#verdict').textContent = verdictOf(H.temp, H.mom);
+  $('#momVal').textContent = H.mom == null ? '—' : (H.mom > 0 ? '+' : '') + H.mom.toFixed(0);
+  $('#momPin').style.left = 'calc(' + clamp(((H.mom ?? 0) + 100) / 200) * 100 + '% - 2px)';
+  const pn = { mvrv: 'MVRV', ahr: 'AHR999', fng: '恐懼貪婪(7日)', fund: '資金費率', alt: '山寨季' };
+  $('#tempParts').innerHTML = '溫度組成：' + Object.keys(TW).filter(k => H.parts[k] != null).map(k => `${pn[k]} <b style="color:var(--text)">${T[k](H.parts[k]).toFixed(0)}</b>`).join(' · ');
+  $('#layers').innerHTML = H.layers.map(L => {
+    const ups = L.items.filter(i => i.light === 'up').length, dns = L.items.filter(i => i.light === 'down').length;
+    const pc = ups > dns ? 'up' : dns > ups ? 'down' : 'flat';
+    const body = L.needKey ? `<div class="ind"><div class="in"><b>需要免費的 Twelve Data API key</b><em>用來看美元、美債、美股（UUP／TLT／QQQ／SPY）。到右上角 ⚙ 設定貼上。</em></div><button class="btn sm" data-open="settings">設定</button></div>`
+      : L.items.length ? L.items.map(i => `<div class="ind"><div class="in"><b>${esc(i.name)}</b><span class="v num">${esc(i.val)}</span><em>${esc(i.sub)}</em><em>${esc(i.how)}</em></div>${i.sp ? spark(i.sp, 80, 30, i.spc) : ''}<span class="pill ${i.light}">${LIGHT[i.light]}</span></div>`).join('')
+      : `<div class="ind"><div class="in"><em>${esc(state.errors[L.k] || '載入中…')}</em></div></div>`;
+    return `<div class="card layer"><div class="lh"><b>${L.n}</b><small>${L.s}</small>${L.items.length ? `<span class="pill ${pc}">偏多 ${ups}／偏空 ${dns}</span>` : ''}</div>${body}</div>`;
+  }).join('');
+  renderAlerts();
+}
+function renderTempChart() {
+  const el = $('#tempChart');
+  if (!state.hist || !window.LightweightCharts) { el.innerHTML = `<div class="empty">${esc(state.errors.chain || (state.hist ? '圖表元件載入失敗（需要連到 unpkg.com）' : '載入中…'))}</div>`; return; }
+  if (el._chart) { try { el._chart.remove(); } catch (e) {} }
+  el.innerHTML = '';
+  const th = chartTheme();
+  const ch = LightweightCharts.createChart(el, { autoSize: true, layout: { background: { color: 'transparent' }, textColor: th.text }, grid: { vertLines: { visible: false }, horzLines: { color: th.line } },
+    leftPriceScale: { visible: true, borderColor: th.line }, rightPriceScale: { borderColor: th.line, mode: 1 }, timeScale: { borderColor: th.line } });
+  el._chart = ch;
+  const h = state.hist.filter(x => x.t > Date.now() / 1000 - 4 * 365 * DAY);
+  ch.addLineSeries({ color: '#8a97ab', lineWidth: 1, priceLineVisible: false }).setData(h.map(x => ({ time: x.t, value: x.c })));
+  const s = ch.addLineSeries({ color: '#f5b942', lineWidth: 2, priceScaleId: 'left', priceLineVisible: false });
+  s.setData(h.filter(x => x.temp != null).map(x => ({ time: x.t, value: +x.temp.toFixed(1) })));
+  [20, 80].forEach(v => s.createPriceLine({ price: v, color: v < 50 ? '#16a34a' : '#ef4444', lineWidth: 1, lineStyle: 2, axisLabelVisible: false }));
+  ch.timeScale().fitContent();
+}
+
+/* ================= 提醒 ================= */
+function computeAlerts() {
+  const al = [], s = state.set, H = lastHealth;
+  if (H && H.temp != null) {
+    if (H.temp <= s.tempLow) al.push({ c: 'up', h: '週期低溫', t: `溫度 ${H.temp.toFixed(0)}，低於你設定的 ${s.tempLow}` });
+    if (H.temp >= s.tempHigh) al.push({ c: 'down', h: '週期過熱', t: `溫度 ${H.temp.toFixed(0)}，高於你設定的 ${s.tempHigh}` });
+  }
+  const d = state.deriv?.BTCUSDT;
+  if (d?.fund7 != null && d.fund7 * 3 * 365 > 30) al.push({ c: 'down', h: '槓桿擁擠', t: 'BTC 資金費率年化超過 30%，留意多殺多' });
+  if (d?.fund7 != null && d.fund7 < 0) al.push({ c: 'up', h: '空頭擁擠', t: 'BTC 7 日平均資金費率轉負' });
+  const W = state.whale;
+  if (W?.flow) {
+    state.wl.crypto.forEach(it => {
+      const f = W.flow.find(x => x.coin === it.sym.toUpperCase());
+      if (f && Math.abs(f.net) >= 5e6) al.push({ c: f.net > 0 ? 'up' : 'down', h: '🐋 ' + it.sym.toUpperCase(), t: `巨鯨 24h 淨${f.net > 0 ? '買進' : '賣出'} ${fmt.big(Math.abs(f.net))}` });
+    });
+  }
+  return al;
+}
+function renderAlerts() {
+  $('#alerts').innerHTML = computeAlerts().map(a => `<div class="al"><b class="${a.c}">${esc(a.h)}</b><span>${esc(a.t)}</span></div>`).join('');
+}
+
+/* ================= 巨鯨：Hyperliquid ================= */
+const hl = body => getJSON(HL, 60e3, false, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+let whaleSort = 'pnl', whaleBusy = false;
+const DIR_ZH = { 'Open Long': '開多', 'Close Long': '平多', 'Open Short': '開空', 'Close Short': '平空', 'Long > Short': '多翻空', 'Short > Long': '空翻多', 'Buy': '現貨買入', 'Sell': '現貨賣出' };
+function dirZh(d) { if (/liquidat/i.test(d)) return '被清算'; return DIR_ZH[d] || d; }
+
+async function fetchLeaderboard() {
+  const j = await getJSON('https://stats-data.hyperliquid.xyz/Mainnet/leaderboard', 30 * 60e3);
+  return j.leaderboardRows.map(r => {
+    const w = Object.fromEntries(r.windowPerformances.map(([k, o]) => [k, { pnl: +o.pnl, roi: +o.roi, vlm: +o.vlm }]));
+    return { a: r.ethAddress, v: +r.accountValue, name: r.displayName, w };
+  });
+}
+function pickWhales(rows) {
+  const s = state.set;
+  let c = rows.filter(r => r.v >= s.whaleMin && r.w.month && r.w.month.vlm > 0);
+  if (s.exHft) c = c.filter(r => r.w.month.vlm / r.v <= 100);
+  const key = { pnl: r => r.w.month.pnl, size: r => r.v, week: r => r.w.week.pnl }[whaleSort];
+  return c.sort((a, b) => key(b) - key(a)).slice(0, s.whaleN);
+}
+async function loadWhales(force) {
+  if (whaleBusy) return;
+  if (!force && state.whale && state.whale.sort === whaleSort && Date.now() - state.whale.t < 5 * 60e3) return renderWhales();
+  whaleBusy = true;
+  const W = { sort: whaleSort, t: Date.now(), list: [], pos: [], flow: null, feed: null };
+  state.whale = W;
+  $('#whaleFlow').innerHTML = $('#whalePos').innerHTML = '<div class="empty"><span class="spin">⟳</span> 讀取 Hyperliquid 排行榜…</div>';
+  try {
+    const rows = await fetchLeaderboard();
+    W.list = pickWhales(rows);
+    $('#whalePos').innerHTML = `<div class="empty"><span class="spin">⟳</span> 讀取 ${W.list.length} 位巨鯨的持倉…</div>`;
+    const states = await pool(W.list, 5, w => hl({ type: 'clearinghouseState', user: w.a }));
+    W.list.forEach((w, i) => {
+      const st = states[i]; w.pos = [];
+      if (!st) return;
+      w.eq = +st.marginSummary.accountValue;
+      w.pos = st.assetPositions.map(p => p.position).map(p => ({ coin: p.coin, szi: +p.szi, val: +p.positionValue, entry: +p.entryPx, upnl: +p.unrealizedPnl, lev: p.leverage?.value, liq: p.liquidationPx ? +p.liquidationPx : null })).filter(p => p.szi !== 0);
+    });
+    aggregatePositions(W);
+    renderWhales();
+    $('#whaleFlow').innerHTML = '<div class="empty"><span class="spin">⟳</span> 讀取巨鯨 24 小時成交…</div>';
+    const since = Date.now() - 864e5;
+    const fills = await pool(W.list, 3, w => hl({ type: 'userFillsByTime', user: w.a, startTime: since, aggregateByTime: true }));
+    W.list.forEach((w, i) => w.fills = fills[i] || []);
+    aggregateFills(W);
+  } catch (e) {
+    state.errors.whale = 'Hyperliquid 讀取失敗：' + e.message;
+  }
+  whaleBusy = false;
+  renderWhales(); renderAlerts();
+}
+function aggregatePositions(W) {
+  const m = new Map();
+  W.list.forEach(w => (w.pos || []).forEach(p => {
+    const o = m.get(p.coin) || { coin: p.coin, long: 0, short: 0, nL: 0, nS: 0, upnl: 0, wsum: 0, wpx: 0 };
+    if (p.szi > 0) { o.long += p.val; o.nL++; } else { o.short += p.val; o.nS++; }
+    o.upnl += p.upnl; o.wsum += Math.abs(p.szi); o.wpx += Math.abs(p.szi) * p.entry;
+    m.set(p.coin, o);
+  }));
+  W.pos = [...m.values()].map(o => ({ ...o, net: o.long - o.short, entry: o.wsum ? o.wpx / o.wsum : null })).sort((a, b) => (b.long + b.short) - (a.long + a.short));
+}
+function aggregateFills(W) {
+  const m = new Map(), g = new Map();
+  W.list.forEach(w => (w.fills || []).forEach(f => {
+    const usd = +f.px * +f.sz, buy = f.side === 'B';
+    const o = m.get(f.coin) || { coin: f.coin, buy: 0, sell: 0, buyers: new Set(), sellers: new Set(), ol: 0, cs: 0, os: 0, cl: 0 };
+    if (buy) { o.buy += usd; o.buyers.add(w.a); } else { o.sell += usd; o.sellers.add(w.a); }
+    const d = f.dir;
+    if (d === 'Open Long') o.ol += usd; else if (d === 'Close Short') o.cs += usd; else if (d === 'Open Short') o.os += usd; else if (d === 'Close Long') o.cl += usd;
+    m.set(f.coin, o);
+    const k = w.a + '|' + f.coin + '|' + dirZh(f.dir);
+    const e = g.get(k) || { w, coin: f.coin, dir: dirZh(f.dir), buy, usd: 0, sz: 0, pxs: 0, t: 0, pnl: 0 };
+    e.usd += usd; e.sz += +f.sz; e.pxs += usd; e.t = Math.max(e.t, f.time); e.pnl += +(f.closedPnl || 0);
+    g.set(k, e);
+  }));
+  W.flow = [...m.values()].map(o => ({ ...o, net: o.buy - o.sell, nb: o.buyers.size, ns: o.sellers.size })).sort((a, b) => Math.abs(b.net) - Math.abs(a.net));
+  W.feed = [...g.values()].filter(e => e.usd >= 1e5).map(e => ({ ...e, px: e.pxs / e.sz })).sort((a, b) => b.t - a.t).slice(0, 60);
+}
+function whaleTag(w) { return w.name ? esc(w.name) : `<span class="addr">${fmt.addr(w.a)}</span>`; }
+function renderWhales() {
+  const W = state.whale;
+  if (!W) return;
+  const err = state.errors.whale;
+  if (err && !W.list.length) { $('#whaleFlow').innerHTML = $('#whalePos').innerHTML = `<div class="err">${esc(err)}</div>`; return; }
+  const totalEq = W.list.reduce((s, w) => s + (w.eq || w.v), 0);
+  $('#whaleFillNote').textContent = W.list.length ? `${W.list.length} 位巨鯨，總資金 ${fmt.big(totalEq)}` : '';
+  // 24h 流向
+  if (W.flow) {
+    const top = W.flow.filter(f => f.buy + f.sell > 5e4).slice(0, 15);
+    const mx = Math.max(1, ...top.map(f => Math.max(f.buy, f.sell)));
+    $('#whaleFlow').innerHTML = top.length ? `<div class="note" style="margin-bottom:4px">買方＝開多＋平空；賣方＝開空＋平多。依淨額排序。</div>` + top.map(f => `<div class="row" data-whalecoin="${esc(f.coin)}" style="display:block">
+      <div class="flex"><b style="flex:1">${esc(f.coin)} <span class="act ${f.net > 0 ? 'up' : 'down'}">淨${f.net > 0 ? '買' : '賣'} ${fmt.big(Math.abs(f.net))}</span></b><span class="note">${f.nb} 鯨買／${f.ns} 鯨賣</span></div>
+      <div class="bar2"><i style="width:${f.buy / mx * 50}%;margin-left:${50 - f.buy / mx * 50}%;background:var(--up)"></i><i style="width:${f.sell / mx * 50}%;background:var(--down)"></i></div>
+      <div class="note" style="display:flex;justify-content:space-between"><span>買 ${fmt.big(f.buy)}（開多 ${fmt.big(f.ol)}、平空 ${fmt.big(f.cs)}）</span><span>賣 ${fmt.big(f.sell)}</span></div></div>`).join('')
+      : '<div class="empty">過去 24 小時巨鯨沒有明顯成交</div>';
+  }
+  // 持倉共識
+  const P = W.pos.slice(0, 15), pm = Math.max(1, ...P.map(p => Math.max(p.long, p.short)));
+  $('#whalePos').innerHTML = P.length ? `<table><thead><tr><th>幣種</th><th>多單</th><th>空單</th><th>淨部位</th></tr></thead><tbody>` + P.map(p => `<tr data-whalecoin="${esc(p.coin)}" style="cursor:pointer"><td><b>${esc(p.coin)}</b><div class="mute" style="font-size:11px">${p.nL} 多／${p.nS} 空 · 浮盈 <span class="${cls(p.upnl)}">${fmt.sbig(p.upnl)}</span></div>
+      <div class="bar2" style="width:120px"><i style="width:${p.long / pm * 50}%;margin-left:${50 - p.long / pm * 50}%;background:var(--up)"></i><i style="width:${p.short / pm * 50}%;background:var(--down)"></i></div></td>
+      <td class="num up">${fmt.big(p.long)}</td><td class="num down">${fmt.big(p.short)}</td><td class="num ${cls(p.net)}"><b>${fmt.sbig(p.net)}</b></td></tr>`).join('') + '</tbody></table>'
+    : `<div class="empty">${W.list.length ? '巨鯨目前沒有持倉' : '載入中…'}</div>`;
+  // 動作
+  if (W.feed) $('#whaleFeed').innerHTML = W.feed.length ? W.feed.map(e => `<div class="it" data-whale="${esc(e.w.a)}" style="cursor:pointer"><div class="t">${fmt.ago(e.t)} · ${whaleTag(e.w)} · 帳戶 ${fmt.big(e.w.eq || e.w.v)} · 本月 <span class="${cls(e.w.w.month.pnl)}">${fmt.sbig(e.w.w.month.pnl)}</span></div>
+      <div><span class="act ${e.buy ? 'up' : 'down'}">${esc(e.dir)}</span> <b>${esc(e.coin)}</b> ${fmt.big(e.usd)} <span class="mute">均價 ${fmt.price(e.px)}</span>${e.pnl ? ` <span class="${cls(e.pnl)}">已實現 ${fmt.sbig(e.pnl)}</span>` : ''}</div></div>`).join('') : '<div class="empty">沒有 ≥ $10 萬的動作</div>';
+  // 名單
+  $('#whaleList').innerHTML = W.list.map((w, i) => {
+    const top = (w.pos || []).slice().sort((a, b) => b.val - a.val)[0];
+    return `<div class="row" data-whale="${esc(w.a)}"><span class="mute" style="width:18px">${i + 1}</span><div class="nm"><b>${whaleTag(w)}</b><span>帳戶 ${fmt.big(w.eq || w.v)} · 本月 <span class="${cls(w.w.month.pnl)}">${fmt.sbig(w.w.month.pnl)}</span> · 本週 <span class="${cls(w.w.week.pnl)}">${fmt.sbig(w.w.week.pnl)}</span></span></div>
+      <div class="px"><div style="font-size:12px">${top ? `${top.szi > 0 ? '多' : '空'} ${esc(top.coin)}` : '<span class="mute">空手</span>'}</div><div class="mute">${(w.pos || []).length} 個部位</div></div></div>`;
+  }).join('') || `<div class="empty">${whaleBusy ? '載入中…' : '沒有符合條件的帳戶'}</div>`;
+}
+function openWhale(addr) {
+  const w = state.whale?.list.find(x => x.a === addr); if (!w) return;
+  const pos = (w.pos || []).slice().sort((a, b) => b.val - a.val);
+  openSheet(`<div class="flex" style="justify-content:space-between"><div><div style="font-size:18px;font-weight:800" class="addr">${esc(fmt.addr(w.a))}</div><div class="note">${w.name ? esc(w.name) + ' · ' : ''}帳戶 ${fmt.big(w.eq || w.v)}</div></div><button class="btn ghost sm" data-close>✕</button></div>
+    <div class="meta" style="margin:10px 0;grid-template-columns:1fr auto 1fr auto"><span>今日損益</span><b class="${cls(w.w.day.pnl)}">${fmt.sbig(w.w.day.pnl)}</b><span>本週</span><b class="${cls(w.w.week.pnl)}">${fmt.sbig(w.w.week.pnl)}</b><span>本月</span><b class="${cls(w.w.month.pnl)}">${fmt.sbig(w.w.month.pnl)}</b><span>累計</span><b class="${cls(w.w.allTime.pnl)}">${fmt.sbig(w.w.allTime.pnl)}</b></div>
+    <h2>目前持倉</h2><div class="card">${pos.length ? `<table><thead><tr><th>幣種</th><th>部位</th><th>開倉價</th><th>浮盈</th></tr></thead><tbody>${pos.map(p => `<tr><td><b>${esc(p.coin)}</b> <span class="act ${p.szi > 0 ? 'up' : 'down'}">${p.szi > 0 ? '多' : '空'} ${p.lev || ''}x</span>${p.liq ? `<div class="mute" style="font-size:11px">強平 ${fmt.price(p.liq)}</div>` : ''}</td><td class="num">${fmt.big(p.val)}</td><td class="num">${fmt.price(p.entry)}</td><td class="num ${cls(p.upnl)}">${fmt.sbig(p.upnl)}</td></tr>`).join('')}</tbody></table>` : '<div class="empty">空手</div>'}</div>
+    <h2>24h 動作</h2><div class="card feed">${(state.whale.feed || []).filter(e => e.w.a === addr).map(e => `<div class="it"><div class="t">${fmt.ago(e.t)}</div><b>${esc(e.dir)} ${esc(e.coin)}</b> ${fmt.big(e.usd)} <span class="mute">均價 ${fmt.price(e.px)}</span></div>`).join('') || '<div class="empty">沒有 ≥ $10 萬的動作</div>'}</div>
+    <p class="note" style="margin-top:10px">完整紀錄：<a href="https://hypurrscan.io/address/${esc(w.a)}" target="_blank" rel="noopener">Hypurrscan</a> · <a href="https://app.hyperliquid.xyz/explorer/address/${esc(w.a)}" target="_blank" rel="noopener">Hyperliquid Explorer</a></p>`);
+}
+function openWhaleCoin(coin) {
+  const W = state.whale; if (!W) return;
+  const holders = [];
+  W.list.forEach(w => (w.pos || []).filter(p => p.coin === coin).forEach(p => holders.push({ w, p })));
+  holders.sort((a, b) => b.p.val - a.p.val);
+  const acts = (W.feed || []).filter(e => e.coin === coin);
+  openSheet(`<div class="flex" style="justify-content:space-between"><div style="font-size:18px;font-weight:800">🐋 ${esc(coin)}</div><button class="btn ghost sm" data-close>✕</button></div>
+    <h2>哪些巨鯨持有</h2><div class="card">${holders.map(({ w, p }) => `<div class="row" data-whale="${esc(w.a)}"><div class="nm"><b>${whaleTag(w)} <span class="act ${p.szi > 0 ? 'up' : 'down'}">${p.szi > 0 ? '多' : '空'} ${p.lev || ''}x</span></b><span>開倉 ${fmt.price(p.entry)}${p.liq ? ' · 強平 ' + fmt.price(p.liq) : ''}</span></div><div class="px num"><div>${fmt.big(p.val)}</div><div class="${cls(p.upnl)}">${fmt.sbig(p.upnl)}</div></div></div>`).join('') || '<div class="empty">名單內沒有人持有</div>'}</div>
+    <h2>24h 動作</h2><div class="card feed">${acts.map(e => `<div class="it"><div class="t">${fmt.ago(e.t)} · ${whaleTag(e.w)}</div><b>${esc(e.dir)}</b> ${fmt.big(e.usd)} <span class="mute">均價 ${fmt.price(e.px)}</span></div>`).join('') || '<div class="empty">沒有 ≥ $10 萬的動作</div>'}</div>`);
+}
+
+/* ================= 巨鯨：DEX 鏈上大額 ================= */
+const GT = 'https://api.geckoterminal.com/api/v2/networks/';
+const EXPLORER = { eth: 'https://etherscan.io', solana: 'https://solscan.io', base: 'https://basescan.org', bsc: 'https://bscscan.com', arbitrum: 'https://arbiscan.io' };
+const STABLE_SYM = /^(USDC|USDT|DAI|USDE|USDS|FDUSD|PYUSD|USD1|USDC\.E|USDT0|USDB|TUSD|BUSD)$/i;
+const BASE_SYM = /^(WETH|ETH|SOL|WSOL|WBNB|BNB|WBTC|CBBTC|BTCB)$/i;
+async function scanDex() {
+  const net = $('#dexNet').value, min = +$('#dexMin').value;
+  $('#dexAgg').innerHTML = '<div class="empty"><span class="spin">⟳</span> 找出成交量最大的交易池…</div>'; $('#dexFeed').innerHTML = '';
+  try {
+    const pj = await getJSON(GT + net + '/pools?sort=h24_volume_usd_desc&page=1', 5 * 60e3);
+    const pools = pj.data.map(p => {
+      const [b, q] = p.attributes.name.split(' / ').map(s => s.trim().split(' ')[0]);
+      return { addr: p.attributes.address, name: p.attributes.name, base: b, quote: q, baseAddr: p.relationships.base_token.data.id.split('_').slice(1).join('_'), vol: +p.attributes.volume_usd.h24, liq: +p.attributes.reserve_in_usd || 0 };
+    }).filter(p => p.liq >= 1e6 && !(STABLE_SYM.test(p.base) && STABLE_SYM.test(p.quote))).slice(0, 8); // 流動性太低的多半是刷量池
+    $('#dexAgg').innerHTML = `<div class="empty"><span class="spin">⟳</span> 讀取 ${pools.length} 個交易池的大額成交…</div>`;
+    const res = await pool(pools, 2, p => getJSON(GT + net + '/pools/' + p.addr + '/trades?trade_volume_in_usd_greater_than=' + min, 3 * 60e3));
+    const trades = [];
+    pools.forEach((p, i) => (res[i]?.data || []).forEach(t => {
+      const a = t.attributes;
+      if (a.is_anomalous) return;
+      const buyBase = a.to_token_address?.toLowerCase() === p.baseAddr.toLowerCase();
+      // 若主幣是 WETH/SOL 而報價幣不是穩定幣（例如 PEPE/WETH），以非主幣為主角
+      let token = p.base, isBuy = buyBase;
+      if (BASE_SYM.test(p.base) && !STABLE_SYM.test(p.quote)) { token = p.quote; isBuy = !buyBase; }
+      trades.push({ token, isBuy, usd: +a.volume_in_usd, who: a.tx_from_address, tx: a.tx_hash, t: Date.parse(a.block_timestamp), pool: p.name });
+    }));
+    const agg = new Map();
+    trades.forEach(t => {
+      const o = agg.get(t.token) || { token: t.token, buy: 0, sell: 0, n: 0, wallets: new Set() };
+      t.isBuy ? o.buy += t.usd : o.sell += t.usd; o.n++; o.wallets.add(t.who); agg.set(t.token, o);
+    });
+    const A = [...agg.values()].sort((a, b) => (b.buy + b.sell) - (a.buy + a.sell));
+    const mx = Math.max(1, ...A.map(a => Math.max(a.buy, a.sell)));
+    $('#dexAgg').innerHTML = A.length ? A.map(a => `<div class="row" style="display:block;cursor:default"><div class="flex"><b style="flex:1">${esc(a.token)} <span class="act ${a.buy >= a.sell ? 'up' : 'down'}">淨${a.buy >= a.sell ? '買' : '賣'} ${fmt.big(Math.abs(a.buy - a.sell))}</span></b><span class="note">${a.n} 筆 · ${a.wallets.size} 個錢包</span></div>
+      <div class="bar2"><i style="width:${a.buy / mx * 50}%;margin-left:${50 - a.buy / mx * 50}%;background:var(--up)"></i><i style="width:${a.sell / mx * 50}%;background:var(--down)"></i></div>
+      <div class="note" style="display:flex;justify-content:space-between"><span>買 ${fmt.big(a.buy)}</span><span>賣 ${fmt.big(a.sell)}</span></div></div>`).join('')
+      : '<div class="empty">最近沒有達到門檻的大額交易，試試降低門檻</div>';
+    trades.sort((a, b) => b.t - a.t);
+    const ex = EXPLORER[net];
+    $('#dexFeed').innerHTML = trades.slice(0, 50).map(t => `<div class="it"><div class="t">${fmt.ago(t.t)} · ${esc(t.pool)} · 錢包 <a class="addr" href="${ex}/${net === 'solana' ? 'account' : 'address'}/${esc(t.who)}" target="_blank" rel="noopener">${esc(fmt.addr(t.who))}</a></div>
+      <span class="act ${t.isBuy ? 'up' : 'down'}">${t.isBuy ? '買入' : '賣出'}</span> <b>${esc(t.token)}</b> ${fmt.big(t.usd)} <a href="${ex}/tx/${esc(t.tx)}" target="_blank" rel="noopener" class="note">交易 ↗</a></div>`).join('');
+  } catch (e) { $('#dexAgg').innerHTML = `<div class="err">GeckoTerminal 讀取失敗（免費版每分鐘 30 次，稍後再試）：${esc(e.message)}</div>`; }
+}
+
+/* ================= 巨鯨：交易所大單 ================= */
+async function scanBig() {
+  const out = $('#bigOut');
+  out.innerHTML = '<div class="empty"><span class="spin">⟳</span> 讀取中…</div>';
+  const syms = [['BTCUSDT', 250000], ['ETHUSDT', 100000], ['SOLUSDT', 50000], ['XRPUSDT', 50000], ['DOGEUSDT', 50000]];
+  const res = await pool(syms, 3, ([s]) => by('recent-trade?category=linear&symbol=' + s + '&limit=1000', 10e3));
+  $('#bigNote').textContent = '更新於 ' + new Date().toLocaleTimeString('zh-TW');
+  out.innerHTML = syms.map(([s, th], i) => {
+    const list = res[i]?.list; if (!list) return `<div class="card" style="margin-bottom:10px"><b>${s}</b> <span class="err">讀取失敗</span></div>`;
+    const tr = list.map(t => ({ usd: +t.price * +t.size, buy: t.side === 'Buy', px: +t.price, t: +t.time, block: t.isBlockTrade }));
+    const span = (tr[0].t - tr[tr.length - 1].t) / 60000;
+    const big = tr.filter(t => t.usd >= th);
+    const bb = big.filter(t => t.buy).reduce((s, t) => s + t.usd, 0), bs = big.filter(t => !t.buy).reduce((s, t) => s + t.usd, 0);
+    const all = tr.reduce((s, t) => s + t.usd, 0);
+    return `<div class="card" style="margin-bottom:10px"><div class="flex"><b style="flex:1">${s.replace('USDT', '')} <span class="act ${bb >= bs ? 'up' : 'down'}">大單淨${bb >= bs ? '買' : '賣'} ${fmt.big(Math.abs(bb - bs))}</span></b><span class="note">≥ ${fmt.big(th)} · 近 ${span.toFixed(0)} 分鐘</span></div>
+      <div class="bar2"><i style="width:${bb + bs ? bb / (bb + bs) * 100 : 50}%;background:var(--up)"></i><i style="width:${bb + bs ? bs / (bb + bs) * 100 : 50}%;background:var(--down)"></i></div>
+      <div class="note">大單 ${big.length} 筆，佔成交額 ${all ? ((bb + bs) / all * 100).toFixed(0) : 0}% · 主動買 ${fmt.big(bb)}／主動賣 ${fmt.big(bs)}</div>
+      ${big.slice(0, 6).map(t => `<div class="note num">${new Date(t.t).toLocaleTimeString('zh-TW')} <span class="${t.buy ? 'up' : 'down'}">${t.buy ? '主動買' : '主動賣'}</span> ${fmt.big(t.usd)} @ ${fmt.price(t.px)}${t.block ? ' · 大宗' : ''}</div>`).join('')}</div>`;
+  }).join('');
+}
+
+/* ================= 市場 ================= */
+let mkView = 'list';
+function renderMarket() {
+  const el = $('#mkOut'), q = $('#coinFilter').value.trim().toLowerCase();
+  const wlIds = new Set(state.wl.crypto.map(c => c.id));
+  $('#coinFilter').style.display = mkView === 'list' || mkView === 'heat' ? '' : 'none';
+  if (mkView === 'trend') {
+    const t = state.trending;
+    if (!t) { el.innerHTML = `<div class="empty">${esc(state.errors.trend || '載入中…')}</div>`; return; }
+    el.innerHTML = t.coins.map(({ item: c }) => { const p = c.data?.price_change_percentage_24h?.usd; return `<div class="row" data-coin="${esc(c.id)}" data-sym="${esc(c.symbol)}" data-name="${esc(c.name)}"><div class="nm"><b>${esc(c.symbol)}</b><span>${esc(c.name)} · 市值排名 #${c.market_cap_rank ?? '—'}</span></div>
+      <div class="px num"><div>${c.data?.price != null ? fmt.price(+c.data.price) : '—'}</div><div class="${cls(p)}">${fmt.pct(p)}</div></div><button class="star ${wlIds.has(c.id) ? 'on' : ''}" data-star="${esc(c.id)}">${wlIds.has(c.id) ? '★' : '☆'}</button></div>`; }).join('');
+    return;
+  }
+  if (mkView === 'sector') {
+    const c = state.categories;
+    if (!c) { el.innerHTML = `<div class="empty">${esc(state.errors.cat || '載入中…')}</div>`; return; }
+    const big = c.filter(x => x.market_cap > 1e9 && x.market_cap_change_24h != null).sort((a, b) => b.market_cap_change_24h - a.market_cap_change_24h);
+    const row = x => `<div class="row" style="cursor:default"><div class="nm"><b>${esc(x.name)}</b><span>市值 ${fmt.big(x.market_cap)} · 24h 成交 ${fmt.big(x.volume_24h)}</span></div><div class="px num ${cls(x.market_cap_change_24h)}">${fmt.pct(x.market_cap_change_24h, 1)}</div></div>`;
+    el.innerHTML = `<div class="note" style="padding:2px 4px">市值 &gt; $10 億的板塊，24h 市值變化。資金從哪裡流向哪裡，一眼看出輪動。</div><h2 style="margin-top:8px">最強 10 個板塊</h2>${big.slice(0, 10).map(row).join('')}<h2>最弱 10 個板塊</h2>${big.slice(-10).reverse().map(row).join('')}`;
+    return;
+  }
+  const m = state.markets;
+  if (!m) { el.innerHTML = `<div class="empty">${esc(state.errors.cg || '載入中…')}</div>`; return; }
+  const list = m.filter(c => !q || c.symbol.includes(q) || c.name.toLowerCase().includes(q));
+  if (mkView === 'heat') {
+    const items = list.filter(c => c.market_cap > 0 && !(Math.abs(c.current_price - 1) < 0.03 && STABLE_RE.test(c.symbol + c.name))).slice(0, 50);
+    const rects = []; treemap(items.map(c => ({ c, w: c.market_cap })), 0, 0, 1.3, 1, rects);
+    el.innerHTML = `<div class="heat">${rects.map(r => {
+      const ch = r.c.price_change_percentage_24h || 0, a = 25 + clamp(Math.abs(ch) / 8) * 65;
+      const area = r.w * r.h;
+      return `<div data-coin="${esc(r.c.id)}" style="left:${r.x / 1.3 * 100}%;top:${r.y * 100}%;width:${r.w / 1.3 * 100}%;height:${r.h * 100}%;background:color-mix(in srgb,${ch >= 0 ? 'var(--up)' : 'var(--down)'} ${a}%,var(--card2))">${area > .004 ? `<b>${esc(r.c.symbol.toUpperCase())}</b>` : ''}${area > .012 ? fmt.pct(ch, 1) : ''}</div>`;
+    }).join('')}</div><div class="note" style="margin-top:6px">前 50 大（不含穩定幣），面積＝市值，顏色深淺＝24h 漲跌幅</div>`;
+    return;
+  }
+  el.innerHTML = `<table><thead><tr><th>#　幣種</th><th>價格</th><th>24h</th><th>30d</th><th>7 日</th><th></th></tr></thead><tbody>` +
+    list.map(c => `<tr data-coin="${esc(c.id)}" style="cursor:pointer"><td><span class="mute" style="font-size:11px">${c.market_cap_rank}</span> <b>${esc(c.symbol.toUpperCase())}</b><div class="mute" style="font-size:11px">${fmt.big(c.market_cap)}</div></td>
+      <td class="num">${fmt.price(c.current_price)}</td><td class="num ${cls(c.price_change_percentage_24h)}">${fmt.pct(c.price_change_percentage_24h, 1)}</td>
+      <td class="num ${cls(c.price_change_percentage_30d_in_currency)}">${fmt.pct(c.price_change_percentage_30d_in_currency, 1)}</td>
+      <td>${spark(c.sparkline_in_7d?.price?.filter((_, i) => i % 4 === 0), 60, 24)}</td>
+      <td><button class="star ${wlIds.has(c.id) ? 'on' : ''}" data-star="${esc(c.id)}">${wlIds.has(c.id) ? '★' : '☆'}</button></td></tr>`).join('') + '</tbody></table>';
+}
+function treemap(items, x, y, w, h, out) {
+  if (!items.length) return;
+  if (items.length === 1) { out.push({ c: items[0].c, x, y, w, h }); return; }
+  const tot = items.reduce((s, i) => s + i.w, 0);
+  let acc = 0, k = 0;
+  while (k < items.length - 1 && acc + items[k].w <= tot / 2) acc += items[k++].w;
+  if (k === 0) acc = items[k++].w;
+  const A = items.slice(0, k), B = items.slice(k), f = acc / tot;
+  if (w >= h) { treemap(A, x, y, w * f, h, out); treemap(B, x + w * f, y, w * (1 - f), h, out); }
+  else { treemap(A, x, y, w, h * f, out); treemap(B, x, y + h * f, w, h * (1 - f), out); }
+}
+
+/* ================= 持倉 ================= */
+function holdPL(key, price) {
+  const h = state.hold[key];
+  if (!h || !(h.qty > 0) || price == null || !isFinite(price)) return null;
+  const val = h.qty * price, cost = h.cost > 0 ? h.qty * h.cost : null;
+  return { val, cost, pnl: cost != null ? val - cost : null, pct: h.cost > 0 ? (price / h.cost - 1) * 100 : null };
+}
+const plHtml = p => p ? `<div class="pl mute">${fmt.big(p.val)}</div>${p.pnl != null ? `<div class="pl ${cls(p.pnl)}">${fmt.sbig(p.pnl)}（${fmt.pct(p.pct, 1)}）</div>` : ''}` : '';
+const advHtml = s => s && s.adv && s.adv.n ? `<div class="adv"><span class="act ${s.adv.c}">${s.adv.t}</span> <em>${esc(s.adv.n)}</em></div>` : '';
+function coinPrice(id) {
+  const mk = (state.markets || []).find(m => m.id === id);
+  if (mk) return { px: mk.current_price, ch: mk.price_change_percentage_24h, img: mk.image };
+  const e = state.extraPx[id]; if (e) return { px: e.usd, ch: e.usd_24h_change };
+  const b = state.bars[id]; if (b) return { px: b[b.length - 1].c, ch: (b[b.length - 1].c / b[b.length - 2].c - 1) * 100 };
+  return {};
+}
+function todoOf(s, held) { return s && (s.fresh || (held && (s.adv.c === 'down' || s.adv.c === 'warn'))); }
+function renderHold() {
+  let tot = 0, cost = 0, cv = 0, uv = 0, todo = 0;
+  const cr = state.wl.crypto.map(it => {
+    const k = 'c:' + it.id, p = coinPrice(it.id), s = signals(state.bars[it.id]), pl = holdPL(k, p.px);
+    if (pl) { tot += pl.val; cv += pl.val; if (pl.cost != null) cost += pl.cost; }
+    if (todoOf(s, !!pl)) todo++;
+    const wf = state.whale?.flow?.find(x => x.coin === it.sym.toUpperCase());
+    return `<div class="row" data-coin="${esc(it.id)}"><div class="nm"><b>${esc(it.sym.toUpperCase())} ${s?.fresh ? `<span class="act ${s.fresh.c}">${s.fresh.t}</span>` : ''}</b>
+      <span>${esc(it.name || '')}${s?.chg5 != null ? ' · 5日 ' + fmt.pct(s.chg5) : ''}${wf ? ` · 🐋 24h 淨${wf.net > 0 ? '買' : '賣'} ${fmt.big(Math.abs(wf.net))}` : ''}</span>
+      ${s ? `<div class="tags">${s.tags.filter(t => t !== s.fresh).slice(0, 4).map(tagHtml).join('')}</div>` : ''}${advHtml(s)}</div>
+      <div class="px num"><div>${fmt.price(p.px)}</div><div class="${cls(p.ch)}">${fmt.pct(p.ch)}</div>${plHtml(pl)}<button class="btn ghost sm" style="margin-top:4px" data-edit="${esc(k)}">編輯</button></div></div>`;
+  });
+  $('#holdCrypto').innerHTML = cr.join('') || '<div class="empty">還沒有加密貨幣，按「＋ 加入」</div>';
+  const us = state.wl.us.map(sym => {
+    const k = 'u:' + sym, s = signals(state.usBars[sym]), pl = holdPL(k, s?.last), err = state.errors['td_' + sym];
+    if (pl) { tot += pl.val; uv += pl.val; if (pl.cost != null) cost += pl.cost; }
+    if (todoOf(s, !!pl)) todo++;
+    return `<div class="row" data-us="${esc(sym)}"><div class="nm"><b>${esc(sym)} ${s?.fresh ? `<span class="act ${s.fresh.c}">${s.fresh.t}</span>` : ''}</b>
+      <span>${s ? '5日 ' + fmt.pct(s.chg5) + ' · 20日 ' + fmt.pct(s.chg20) : esc(err || (state.set.tdKey ? '載入中…' : '需要 Twelve Data API key'))}</span>
+      ${s ? `<div class="tags">${s.tags.filter(t => t !== s.fresh).slice(0, 4).map(tagHtml).join('')}</div>` : ''}${advHtml(s)}</div>
+      <div class="px num"><div>${s ? '$' + s.last.toFixed(2) : '—'}</div><div class="${cls(s?.chg1)}">${s ? fmt.pct(s.chg1) : ''}</div>${plHtml(pl)}<button class="btn ghost sm" style="margin-top:4px" data-edit="${esc(k)}">編輯</button></div></div>`;
+  });
+  $('#holdUS').innerHTML = us.join('') || '<div class="empty">還沒有美股</div>';
+  const btcPx = coinPrice('bitcoin').px;
+  const card = (l, v, c) => `<div class="kcard"><div class="l">${l}</div><div class="v num">${v}</div><div class="c">${c}</div></div>`;
+  $('#holdSum').innerHTML = tot ? card('持倉總值', fmt.big(tot), btcPx ? `<span class="mute">約 ${(tot / btcPx).toFixed(3)} BTC</span>` : '') +
+    card('未實現損益', `<span class="${cls(tot - cost)}">${cost ? fmt.sbig(tot - cost) : '—'}</span>`, cost ? `<span class="${cls(tot - cost)}">${fmt.pct((tot / cost - 1) * 100, 1)}</span>` : '<span class="mute">填入成本後計算</span>') +
+    card('加密貨幣', fmt.big(cv), `<span class="mute">${tot ? (cv / tot * 100).toFixed(0) : 0}%</span>`) + card('美股', fmt.big(uv), `<span class="mute">${tot ? (uv / tot * 100).toFixed(0) : 0}%</span>`)
+    : `<div class="kcard" style="grid-column:1/-1"><div class="l">還沒有填入持倉</div><div class="c">在下方清單按「編輯」填入數量與成本，就會計算總值與損益</div></div>`;
+  const d = $('#todoDot'); d.style.display = todo ? 'grid' : 'none'; d.textContent = todo;
+}
+function editHolding(key) {
+  const h = state.hold[key] || {};
+  const label = key.startsWith('c:') ? (state.wl.crypto.find(c => 'c:' + c.id === key)?.sym || key).toUpperCase() : key.slice(2);
+  openSheet(`<div class="flex" style="justify-content:space-between"><b style="font-size:18px">${esc(label)}</b><button class="btn ghost sm" data-close>✕</button></div>
+    <div class="grid2" style="margin-top:12px"><div class="field"><label>持有數量</label><input id="hQty" type="number" step="any" value="${h.qty ?? ''}" placeholder="例如 0.5"></div>
+    <div class="field"><label>平均成本（USD）</label><input id="hCost" type="number" step="any" value="${h.cost ?? ''}" placeholder="例如 62000"></div></div>
+    <div class="flex"><button class="btn" id="hSave" style="flex:1">儲存</button><button class="btn ghost" id="hDel">從清單移除</button></div>`);
+  $('#hSave').onclick = () => { const q = parseFloat($('#hQty').value), c = parseFloat($('#hCost').value); if (q > 0) state.hold[key] = { qty: q, cost: c > 0 ? c : null }; else delete state.hold[key]; saveHold(); closeModal(); renderHold(); toast('已儲存'); };
+  $('#hDel').onclick = () => { if (key.startsWith('c:')) state.wl.crypto = state.wl.crypto.filter(c => 'c:' + c.id !== key); else state.wl.us = state.wl.us.filter(s => 'u:' + s !== key); delete state.hold[key]; saveWl(); saveHold(); closeModal(); renderHold(); renderMarket(); };
+}
+function addCoinSheet() {
+  openSheet(`<div class="flex" style="justify-content:space-between"><b style="font-size:18px">加入加密貨幣</b><button class="btn ghost sm" data-close>✕</button></div>
+    <div class="flex" style="margin:12px 0"><input id="csQ" placeholder="搜尋，例如 sui、pepe、hype"><button class="btn sm" id="csGo">搜尋</button></div><div id="csOut"></div>`);
+  const go = async () => {
+    const q = $('#csQ').value.trim(); if (!q) return;
+    $('#csOut').innerHTML = '<div class="note">搜尋中…</div>';
+    try {
+      const j = await getJSON(CG + '/search?query=' + encodeURIComponent(q), 10 * 60e3);
+      const wl = new Set(state.wl.crypto.map(c => c.id));
+      $('#csOut').innerHTML = j.coins.slice(0, 10).map(c => `<div class="row" style="cursor:default"><div class="nm"><b>${esc(c.symbol)}</b><span>${esc(c.name)} · #${c.market_cap_rank ?? '—'}</span></div><button class="star ${wl.has(c.id) ? 'on' : ''}" data-star="${esc(c.id)}" data-sym="${esc(c.symbol)}" data-name="${esc(c.name)}">${wl.has(c.id) ? '★' : '☆'}</button></div>`).join('') || '<div class="note">找不到</div>';
+    } catch (e) { $('#csOut').innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+  };
+  $('#csGo').onclick = go; $('#csQ').onkeydown = e => { if (e.key === 'Enter') go(); }; $('#csQ').focus();
+}
+function addUsSheet() {
+  openSheet(`<div class="flex" style="justify-content:space-between"><b style="font-size:18px">加入美股</b><button class="btn ghost sm" data-close>✕</button></div>
+    <div class="flex" style="margin:12px 0"><input id="usQ" placeholder="代號，例如 AMD" style="text-transform:uppercase"><button class="btn sm" id="usGo">加入</button></div>
+    ${state.set.tdKey ? '' : '<p class="note">美股報價需要 Twelve Data 免費 API key，請到 ⚙ 設定貼上。</p>'}`);
+  const go = () => {
+    const s = $('#usQ').value.trim().toUpperCase();
+    if (!/^[A-Z.\-]{1,10}$/.test(s)) return toast('代號格式不正確');
+    if (!state.wl.us.includes(s)) { state.wl.us.push(s); saveWl(); }
+    closeModal(); renderHold(); loadUS(); toast('已加入 ' + s);
+  };
+  $('#usGo').onclick = go; $('#usQ').onkeydown = e => { if (e.key === 'Enter') go(); }; $('#usQ').focus();
+}
+function toggleCoin(id, sym, name) {
+  const i = state.wl.crypto.findIndex(c => c.id === id);
+  if (i >= 0) { state.wl.crypto.splice(i, 1); toast('已從清單移除'); }
+  else {
+    const mk = (state.markets || []).find(m => m.id === id);
+    const it = { id, sym: (mk?.symbol || sym || id).toUpperCase(), name: mk?.name || name || id };
+    state.wl.crypto.push(it); toast('已加入持倉清單');
+    coinBars(it).then(() => { renderHold(); }).catch(() => {});
+    if (!mk) fetchSimplePrices([id]).then(p => { Object.assign(state.extraPx, p); renderHold(); }).catch(() => {});
+  }
+  saveWl(); renderHold(); renderMarket();
+}
+
+/* ================= 詳細圖 ================= */
+function openSheet(html) { $('#sheet').innerHTML = html; $('#modal').classList.add('on'); }
+function closeModal() { $('#modal').classList.remove('on'); if (window._chart) { try { window._chart.remove(); } catch (e) {} window._chart = null; } }
+function chartTheme() { const cs = getComputedStyle(document.documentElement); return { text: cs.getPropertyValue('--mute').trim(), line: cs.getPropertyValue('--line').trim(), up: cs.getPropertyValue('--up').trim(), down: cs.getPropertyValue('--down').trim() }; }
+const MA_COL = [[5, '#f472b6'], [10, '#22d3ee'], [20, '#f5b942'], [60, '#4f8cff'], [200, '#c084fc']];
+function drawChart(el, bars) {
+  const view = bars.slice(-240), closes = bars.map(b => b.c);
+  if (!window.LightweightCharts) { el.innerHTML = spark(view.map(b => b.c), 520, 280); return; }
+  const th = chartTheme();
+  const ch = LightweightCharts.createChart(el, { autoSize: true, layout: { background: { color: 'transparent' }, textColor: th.text }, grid: { vertLines: { color: th.line }, horzLines: { color: th.line } }, rightPriceScale: { borderColor: th.line }, timeScale: { borderColor: th.line } });
+  window._chart = ch;
+  const flat = view.every(b => b.o === b.c && b.h === b.c);
+  if (flat) ch.addLineSeries({ color: th.up, lineWidth: 2 }).setData(view.map(b => ({ time: b.t, value: b.c })));
+  else ch.addCandlestickSeries({ upColor: th.up, downColor: th.down, borderVisible: false, wickUpColor: th.up, wickDownColor: th.down }).setData(view.map(b => ({ time: b.t, open: b.o, high: b.h, low: b.l, close: b.c })));
+  const off = bars.length - view.length;
+  MA_COL.forEach(([n, col]) => {
+    const m = sma(closes, n), d = view.map((b, i) => ({ time: b.t, value: m[off + i] })).filter(x => x.value != null);
+    if (d.length) ch.addLineSeries({ color: col, lineWidth: 1, priceLineVisible: false, lastValueVisible: false }).setData(d);
+  });
+  ch.timeScale().fitContent();
+}
+async function openDetail(kind, key) {
+  openSheet('<div class="empty"><span class="spin">⟳</span> 載入中…</div>');
+  let bars, title, sub = '', item, hk;
+  try {
+    if (kind === 'coin') {
+      const mk = (state.markets || []).find(m => m.id === key);
+      item = state.wl.crypto.find(c => c.id === key) || (mk ? { id: mk.id, sym: mk.symbol, name: mk.name } : { id: key, sym: key, name: key });
+      bars = await coinBars(item); title = item.sym.toUpperCase(); sub = item.name || ''; hk = 'c:' + key;
+      if (mk) sub += ` · 市值 ${fmt.big(mk.market_cap)} · #${mk.market_cap_rank}`;
+    } else {
+      bars = state.usBars[key];
+      if (!bars) { const r = await tdFetch([key]); bars = state.usBars[key] = r[key]; }
+      title = key; hk = 'u:' + key;
+    }
+  } catch (e) { openSheet(`<div class="err">讀取失敗：${esc(e.message === 'NO_KEY' ? '美股需要 Twelve Data API key' : e.message)}</div><button class="btn ghost" data-close>關閉</button>`); return; }
+  if (!bars || !bars.length) { openSheet('<div class="err">沒有資料</div><button class="btn ghost" data-close>關閉</button>'); return; }
+  const s = signals(bars);
+  const inWl = kind === 'coin' ? state.wl.crypto.some(c => c.id === key) : state.wl.us.includes(key);
+  const wp = kind === 'coin' && state.whale?.pos?.find(p => p.coin === title);
+  const wf = kind === 'coin' && state.whale?.flow?.find(p => p.coin === title);
+  openSheet(`<div class="flex" style="justify-content:space-between"><div><div style="font-size:20px;font-weight:800">${esc(title)}</div><div class="note">${esc(sub)}</div></div>
+    <div class="flex">${kind === 'coin' ? `<button class="btn ghost sm" data-star="${esc(key)}" data-sym="${esc(item.sym)}" data-name="${esc(item.name)}" data-close>${inWl ? '★ 已加入' : '☆ 加入'}</button>` : ''}<button class="btn ghost sm" data-close>✕</button></div></div>
+    <div class="flex" style="margin-top:8px;gap:16px"><div style="font-size:22px;font-weight:700" class="num">${fmt.price(s?.last)}</div><div class="num"><span class="${cls(s?.chg1)}">${fmt.pct(s?.chg1)}</span> <span class="mute">1日</span> <span class="${cls(s?.chg5)}">${fmt.pct(s?.chg5)}</span> <span class="mute">5日</span> <span class="${cls(s?.chg20)}">${fmt.pct(s?.chg20)}</span> <span class="mute">20日</span></div></div>
+    ${advHtml(s)}
+    <div class="legend" style="margin-top:6px">${MA_COL.map(([n, c]) => `<span><i style="background:${c}"></i>MA${n}</span>`).join('')}</div>
+    <div class="chart" id="dChart"></div>
+    <div class="tags">${(s?.tags || []).map(tagHtml).join('')}</div>
+    <div class="meta" style="margin-top:10px;grid-template-columns:1fr auto 1fr auto"><span>MA20 月線</span><b>${fmt.price(s?.m20)}</b><span>MA60 季線</span><b>${fmt.price(s?.m60)}</b><span>MA200 年線</span><b>${fmt.price(s?.m200)}</b><span>RSI(14)</span><b>${s?.rsi != null ? s.rsi.toFixed(1) : '—'}</b></div>
+    ${wp || wf ? `<h2>🐋 Hyperliquid 巨鯨</h2><div class="card note">${wp ? `持倉：多 ${fmt.big(wp.long)}（${wp.nL} 人）／空 ${fmt.big(wp.short)}（${wp.nS} 人），淨 <b class="${cls(wp.net)}">${fmt.sbig(wp.net)}</b>` : ''}${wf ? `<br>24h：買 ${fmt.big(wf.buy)}／賣 ${fmt.big(wf.sell)}，淨 <b class="${cls(wf.net)}">${fmt.sbig(wf.net)}</b>` : ''}<br><button class="btn ghost sm" style="margin-top:6px" data-whalecoin="${esc(title)}">看是哪些巨鯨</button></div>` : ''}
+    ${inWl ? `<button class="btn ghost sm" style="margin-top:10px" data-edit="${esc(hk)}">編輯持倉數量與成本</button>` : ''}`);
+  drawChart($('#dChart'), bars);
+}
+
+/* ================= 設定 ================= */
+function openSettings() {
+  const s = state.set;
+  openSheet(`<div class="flex" style="justify-content:space-between"><b style="font-size:18px">設定</b><button class="btn ghost sm" data-close>✕</button></div>
+    <h2>美股與總體數據</h2><div class="card"><div class="field"><label>Twelve Data API Key（免費，每天 800 次）</label><input id="sKey" value="${esc(s.tdKey)}" placeholder="貼上你的 API key"></div>
+      <p class="note">到 <a href="https://twelvedata.com/register" target="_blank" rel="noopener">twelvedata.com</a> 免費註冊，在 Dashboard → API Keys 複製。金鑰只存在這台瀏覽器。</p></div>
+    <h2>提醒</h2><div class="card grid2"><div class="field"><label>週期溫度 ≤（低溫提醒）</label><input id="sTL" type="number" value="${s.tempLow}"></div><div class="field"><label>週期溫度 ≥（過熱提醒）</label><input id="sTH" type="number" value="${s.tempHigh}"></div></div>
+    <h2>巨鯨追蹤</h2><div class="card"><div class="grid2"><div class="field"><label>追蹤人數</label><select id="sWN">${[10, 20, 30, 40].map(n => `<option ${n === s.whaleN ? 'selected' : ''}>${n}</option>`).join('')}</select></div>
+      <div class="field"><label>最低帳戶資金</label><select id="sWM">${[[5e5, '$50 萬'], [1e6, '$100 萬'], [5e6, '$500 萬'], [1e7, '$1,000 萬']].map(([v, l]) => `<option value="${v}" ${v === s.whaleMin ? 'selected' : ''}>${l}</option>`).join('')}</select></div></div>
+      <label class="chk"><input type="checkbox" id="sHft" ${s.exHft ? 'checked' : ''}> 排除高頻做市商（月成交量超過帳戶 100 倍）</label></div>
+    <h2>顯示</h2><div class="card grid2"><div class="field"><label>漲跌顏色</label><select id="sCol"><option value="tw">台灣（紅漲綠跌）</option><option value="intl" ${s.color === 'intl' ? 'selected' : ''}>國際（綠漲紅跌）</option></select></div>
+      <div class="field"><label>主題</label><select id="sTheme"><option value="dark">深色</option><option value="light" ${s.theme === 'light' ? 'selected' : ''}>淺色</option></select></div>
+      <div class="field"><label>字體</label><select id="sFs">${[['14px', '小'], ['15px', '中'], ['17px', '大']].map(([v, l]) => `<option value="${v}" ${v === s.fs ? 'selected' : ''}>${l}</option>`).join('')}</select></div></div>
+    <div class="flex" style="margin-top:12px"><button class="btn" id="sSave" style="flex:1">儲存</button><button class="btn ghost" id="sClear">清除快取</button></div>`);
+  $('#sSave').onclick = () => {
+    const keyChanged = $('#sKey').value.trim() !== s.tdKey;
+    Object.assign(s, { tdKey: $('#sKey').value.trim(), tempLow: +$('#sTL').value, tempHigh: +$('#sTH').value, whaleN: +$('#sWN').value, whaleMin: +$('#sWM').value, exHft: $('#sHft').checked, color: $('#sCol').value, theme: $('#sTheme').value, fs: $('#sFs').value });
+    saveSet(); applyDisplay(); closeModal(); toast('已儲存');
+    if (state.whale) state.whale.t = 0;
+    renderAllViews(); if (keyChanged) loadUS();
+  };
+  $('#sClear').onclick = () => { store.clearCache(); Object.keys(mem).forEach(k => delete mem[k]); closeModal(); toast('快取已清除，重新載入'); loadAll(true); };
+}
+function applyDisplay() {
+  const r = document.documentElement;
+  r.classList.toggle('intl', state.set.color === 'intl'); r.classList.toggle('light', state.set.theme === 'light');
+  r.style.setProperty('--fs', state.set.fs);
+  document.querySelector('meta[name=theme-color]').content = state.set.theme === 'light' ? '#f3f5f9' : '#0b0f17';
+}
+
+/* ================= 回測 ================= */
+function runBacktest() {
+  const out = $('#btOut');
+  if (!state.hist) { out.innerHTML = '<div class="err">歷史資料還沒載入完成，請稍候再按。</div>'; return; }
+  const amt = +$('#btAmt').value || 100, dow = +$('#btDow').value, fee = (+$('#btFee').value || 0) / 100, sellHot = $('#btSell').checked;
+  const start = Math.floor(Date.parse($('#btStart').value + 'T00:00:00Z') / 1000) || state.hist[0].t;
+  const tm = t => t == null ? 1 : t < 20 ? 3 : t < 35 ? 2 : t < 50 ? 1.25 : t < 65 ? 0.75 : t < 80 ? 0.25 : 0;
+  const S = {
+    dca: { name: '固定定投', color: '#8a97ab', mult: () => 1 },
+    ahr: { name: 'AHR999 加權', color: '#4f8cff', mult: h => h.ahr == null ? 1 : h.ahr < 0.45 ? 2 : h.ahr < 1.2 ? 1 : 0 },
+    temp: { name: '週期溫度', color: '#f5b942', mult: h => tm(h.temp), sell: true },
+    tm: { name: '溫度＋動能', color: '#f472b6', mult: h => tm(h.temp) * (h.mom == null ? 1 : h.mom > 20 ? 1.3 : h.mom < -20 ? 0.7 : 1), sell: true }
+  };
+  const days = state.hist.filter(h => h.t >= start);
+  if (days.length < 30) { out.innerHTML = '<div class="err">開始日期太晚，資料不足。</div>'; return; }
+  const res = {};
+  for (const [k, s] of Object.entries(S)) {
+    let inv = 0, coin = 0, cash = 0, buys = 0, worst = 0, peak = 0, mdd = 0; const curve = [];
+    for (const h of days) {
+      if (new Date(h.t * 1000).getUTCDay() === dow) {
+        const m = s.mult(h);
+        if (m > 0) { const usd = amt * m; inv += usd; coin += usd * (1 - fee) / h.c; buys++; }
+        if (sellHot && s.sell && h.temp != null && h.temp >= 80 && coin > 0) { const q = coin * 0.08; coin -= q; cash += q * h.c * (1 - fee); }
+      }
+      const val = coin * h.c + cash;
+      if (inv > 0) {
+        const roi = (val / inv - 1) * 100; worst = Math.min(worst, roi);
+        peak = Math.max(peak, val); if (peak > 0) mdd = Math.min(mdd, (val / peak - 1) * 100);
+        curve.push({ time: h.t, value: +roi.toFixed(2) });
+      }
+    }
+    const lastP = days[days.length - 1].c, val = coin * lastP + cash;
+    res[k] = { ...s, inv, val, cash, roi: inv ? (val / inv - 1) * 100 : 0, mult: inv ? val / inv : 0, avg: coin ? (inv - cash) / coin : 0, buys, worst, mdd, curve };
+  }
+  out.innerHTML = `<div class="note">期間 ${fmt.date(days[0].t)} – ${fmt.date(days[days.length - 1].t)}</div>
+    <table style="margin-top:6px"><thead><tr><th>策略</th><th>投入 → 最終</th><th>倍數</th><th>最大回撤</th></tr></thead><tbody>
+    ${Object.values(res).map(x => `<tr><td style="white-space:nowrap"><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${x.color};margin-right:4px"></i>${x.name}<div class="mute" style="font-size:11px">買 ${x.buys} 次${x.cash ? ' · 已減碼 ' + fmt.big(x.cash) : ''}</div></td>
+      <td class="num">${fmt.big(x.inv)}<div class="mute" style="font-size:11px">→ ${fmt.big(x.val)}</div></td><td class="num ${cls(x.roi)}"><b>${x.mult.toFixed(2)}×</b><div style="font-size:11px">${fmt.pct(x.roi, 0)}</div></td><td class="num down">${x.mdd.toFixed(0)}%</td></tr>`).join('')}
+    </tbody></table>
+    <div class="legend" style="margin-top:10px">${Object.values(res).map(x => `<span><i style="background:${x.color}"></i>${x.name}</span>`).join('')}</div>
+    <div class="chart" id="btChart" style="height:260px"></div><div class="note">圖表：各策略累計報酬率（%）。倍數＝最終資產（持幣市值＋減碼現金）÷ 總投入。最大回撤＝資產從高點最多跌掉幾成。</div>`;
+  if (!window.LightweightCharts) return;
+  const el = $('#btChart'), th = chartTheme();
+  if (window._btChart) { try { window._btChart.remove(); } catch (e) {} }
+  const ch = LightweightCharts.createChart(el, { autoSize: true, layout: { background: { color: 'transparent' }, textColor: th.text }, grid: { vertLines: { color: th.line }, horzLines: { color: th.line } }, rightPriceScale: { borderColor: th.line }, timeScale: { borderColor: th.line } });
+  window._btChart = ch;
+  Object.values(res).forEach(x => ch.addLineSeries({ color: x.color, lineWidth: 2, priceLineVisible: false }).setData(x.curve));
+  ch.timeScale().fitContent();
+}
+
+/* ================= 載入流程 ================= */
+function renderTicker() {
+  const items = [], m = state.markets || [];
+  ['bitcoin', 'ethereum', 'solana'].forEach(id => { const c = m.find(x => x.id === id); if (c) items.push(`<div>${c.symbol.toUpperCase()} <b>${fmt.price(c.current_price)}</b> <span class="${cls(c.price_change_percentage_24h)}">${fmt.pct(c.price_change_percentage_24h)}</span></div>`); });
+  if (lastHealth?.temp != null) items.push(`<div>週期溫度 <b>${lastHealth.temp.toFixed(0)}</b> <span class="mute">${tempZh(lastHealth.temp)}</span></div>`);
+  if (state.fng) { const f = state.fng[state.fng.length - 1]; items.push(`<div>恐懼貪婪 <b>${f.v}</b></div>`); }
+  const d = state.deriv?.BTCUSDT; if (d?.fund != null) items.push(`<div>資金費率 <b>${d.fund.toFixed(4)}%</b></div>`);
+  $('#ticker').innerHTML = items.join('');
+}
+function renderAllViews() { renderHealth(); renderTicker(); renderMarket(); renderHold(); if (state.whale) renderWhales(); }
+let usBusy = false;
+async function loadUS() {
+  if (!state.set.tdKey || usBusy) return;
+  usBusy = true;
+  try { Object.assign(state.usBars, await tdFetch([...new Set([...MACRO.map(x => x.s), ...state.wl.us])], msg => toast(msg, 5000))); }
+  catch (e) { state.errors.macro = '美股讀取失敗：' + e.message; toast(state.errors.macro); }
+  usBusy = false; renderAllViews();
+}
+async function loadAll(force) {
+  if (force) { Object.keys(mem).forEach(k => delete mem[k]); state.bars = {}; }
+  $('#refreshBtn').innerHTML = '<span class="spin">⟳</span>';
+  const jobs = [
+    fetchFng().then(d => state.fng = d).catch(e => state.errors.senti = '恐懼貪婪讀取失敗：' + e.message),
+    fetchMarkets().then(d => state.markets = d).catch(e => state.errors.cg = 'CoinGecko 讀取失敗（可能觸發頻率限制，稍後再試）：' + e.message),
+    fetchGlobal().then(d => state.global = d).catch(() => {}),
+    fetchStable().then(d => state.stable = d).catch(e => state.errors.flow = '穩定幣數據讀取失敗：' + e.message),
+    fetchBtcChain().then(d => { state.btc = d; state.ahrMap = ahrCalc(d); }).catch(e => state.errors.chain = 'CoinMetrics 讀取失敗：' + e.message),
+    Promise.all(['BTCUSDT', 'ETHUSDT'].map(fetchDeriv)).then(a => state.deriv = { BTCUSDT: a[0], ETHUSDT: a[1] }).catch(e => state.errors.deriv = 'Bybit 讀取失敗：' + e.message),
+    fetchDvol('BTC').then(d => state.dvol = d).catch(() => {})
+  ];
+  await Promise.all(jobs);
+  try { state.hist = buildHistory(); } catch (e) { state.errors.chain = '歷史計算失敗：' + e.message; }
+  renderAllViews(); renderTempChart();
+  fetchTrending().then(d => { state.trending = d; renderMarket(); }).catch(e => state.errors.trend = '熱搜讀取失敗：' + e.message);
+  fetchCategories().then(d => { state.categories = d; renderMarket(); }).catch(e => state.errors.cat = '板塊讀取失敗：' + e.message);
+  const missing = state.wl.crypto.filter(c => !(state.markets || []).some(m => m.id === c.id)).map(c => c.id);
+  fetchSimplePrices(missing).then(p => { Object.assign(state.extraPx, p); renderHold(); }).catch(() => {});
+  await pool(state.wl.crypto, 2, async it => { await coinBars(it); renderHold(); });
+  renderHold();
+  $('#updated').textContent = '更新 ' + new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' });
+  $('#refreshBtn').textContent = '⟳';
+  loadUS();
+  if (currentTab === 'whale') loadWhales(force);
+}
+
+/* ================= 事件 ================= */
+let currentTab = 'health';
+function goTab(t) {
+  if (!document.getElementById('tab-' + t)) t = 'health';
+  currentTab = t;
+  $$('section.tab').forEach(s => s.classList.toggle('on', s.id === 'tab-' + t));
+  $$('nav button').forEach(b => b.classList.toggle('on', b.dataset.tab === t));
+  try { if (location.hash !== '#' + t) history.replaceState(null, '', '#' + t); } catch (e) {} // 預覽框等沙盒環境不允許改網址
+  try { window.scrollTo(0, 0); } catch (e) {}
+  if (t === 'whale') loadWhales();
+  if (t === 'health' && state.hist) renderTempChart();
+}
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-tab],[data-open],[data-star],[data-edit],[data-close],[data-whale],[data-whalecoin],[data-coin],[data-us],.seg button');
+  if (!t) return;
+  if (t.dataset.tab) return goTab(t.dataset.tab);
+  if (t.dataset.open === 'settings') return openSettings();
+  if (t.dataset.star) { e.stopPropagation(); toggleCoin(t.dataset.star, t.dataset.sym, t.dataset.name); if (t.hasAttribute('data-close')) closeModal(); else if ($('#modal').classList.contains('on') && $('#csOut')) { t.classList.toggle('on'); t.textContent = t.classList.contains('on') ? '★' : '☆'; } return; }
+  if (t.dataset.edit) { e.stopPropagation(); return editHolding(t.dataset.edit); }
+  if (t.hasAttribute('data-close')) return closeModal();
+  if (t.dataset.whale) return openWhale(t.dataset.whale);
+  if (t.dataset.whalecoin) return openWhaleCoin(t.dataset.whalecoin);
+  if (t.dataset.coin) return openDetail('coin', t.dataset.coin);
+  if (t.dataset.us) return openDetail('us', t.dataset.us);
+  const seg = t.parentElement;
+  if (seg?.classList.contains('seg')) {
+    $$('#' + seg.id + ' button').forEach(b => b.classList.toggle('on', b === t));
+    const v = t.dataset.v;
+    if (seg.id === 'mkSeg') { mkView = v; renderMarket(); }
+    if (seg.id === 'whaleSeg') { $('#whaleHL').style.display = v === 'hl' ? '' : 'none'; $('#whaleDEX').style.display = v === 'dex' ? '' : 'none'; $('#whaleBIG').style.display = v === 'big' ? '' : 'none'; if (v === 'big' && !$('#bigOut').innerHTML) scanBig(); }
+    if (seg.id === 'whaleSort') { whaleSort = v; loadWhales(); }
+  }
+});
+$('#modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
+$('#refreshBtn').onclick = () => { loadAll(true); if (currentTab === 'whale') loadWhales(true); };
+$('#setBtn').onclick = openSettings;
+$('#coinFilter').oninput = renderMarket;
+$('#addCoinBtn').onclick = addCoinSheet;
+$('#addUsBtn').onclick = addUsSheet;
+$('#dexGo').onclick = scanDex;
+$('#bigGo').onclick = scanBig;
+$('#btRun').onclick = runBacktest;
+window.addEventListener('hashchange', () => goTab(location.hash.slice(1)));
+
+/* ================= 啟動 ================= */
+applyDisplay();
+if (location.protocol === 'about:' || /claudeusercontent|claude\.ai/.test(location.hostname)) {
+  const n = document.createElement('div');
+  n.className = 'card note'; n.style.cssText = 'margin:12px;border-color:var(--accent)';
+  n.innerHTML = '<b style="color:var(--accent)">你正在預覽視窗中開啟</b><br>預覽視窗會擋掉即時數據。請下載這個 HTML 檔，用電腦或手機的瀏覽器（Chrome、Safari、Edge）直接打開。';
+  document.querySelector('main').prepend(n);
+}
+let startTab = 'health'; try { startTab = location.hash.slice(1) || 'health'; } catch (e) {}
+goTab(startTab);
+renderAllViews();
+loadAll();
+setInterval(() => { if (!document.hidden) loadAll(); }, 5 * 60e3);
+</script>
+</body>
+</html>
