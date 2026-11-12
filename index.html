@@ -108,6 +108,17 @@ th:first-child,td:first-child{text-align:left}
 .heat b{display:block;font-size:12px}
 .pl{font-size:11px}
 .chk{display:flex;align-items:center;gap:6px;font-size:13px}.chk input{width:auto}
+textarea{font:inherit;color:var(--text);background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:8px 10px;width:100%;min-height:56px;resize:vertical}
+.regime{display:flex;align-items:center;gap:14px}
+.regime .big{font-size:26px;font-weight:900;padding:8px 16px;border-radius:12px;white-space:nowrap}
+.regime .big.up{background:color-mix(in srgb,var(--up) 18%,transparent);color:var(--up)}
+.regime .big.down{background:color-mix(in srgb,var(--down) 18%,transparent);color:var(--down)}
+.regime .big.flat{background:var(--card2);color:var(--accent)}
+.reasons{font-size:12px;color:var(--mute);margin-top:6px;line-height:1.7}
+.tvbtn{font-size:11px;padding:3px 8px;border-radius:6px;border:1px solid var(--line);color:var(--blue);white-space:nowrap;display:inline-block}
+.ev{display:flex;gap:10px;align-items:center;padding:8px 2px;border-bottom:1px solid var(--line);font-size:13px}.ev:last-child{border-bottom:0}
+.ev .d{min-width:62px;text-align:center;font-weight:700}.ev .d small{display:block;font-weight:400;font-size:11px;color:var(--mute)}
+.warnl{color:var(--accent);font-size:12px;margin-top:4px}
 </style>
 </head>
 <body>
@@ -122,6 +133,23 @@ th:first-child,td:first-child{text-align:left}
 </header>
 
 <main>
+<!-- 作戰 -->
+<section class="tab" id="tab-today">
+  <div class="card" id="regimeCard"><div class="empty">計算中…</div></div>
+  <div class="alerts" id="lockBanner" style="margin-top:10px"></div>
+  <h2>我的部位要處理 <span class="sp"></span><button class="btn ghost sm" data-tab="hold">全部持倉</button></h2>
+  <div class="card" id="todoList"><div class="empty">載入中…</div></div>
+  <h2>交易計畫 <small>先算好風險再下單</small><span class="sp"></span><button class="btn sm" id="newPlanBtn">＋ 新計畫</button></h2>
+  <div class="card" id="riskSum"></div>
+  <div id="planList"></div>
+  <h2>今日事件 <small>選擇權到期與美國經濟數據</small></h2>
+  <div class="card" id="expiryCard"></div>
+  <div class="card" id="tvCalendar" style="margin-top:10px;padding:0;overflow:hidden;min-height:420px"><div class="empty">經濟日曆載入中…</div></div>
+  <h2>TradingView <small>清單與指標</small></h2>
+  <div class="card"><div class="flex" style="flex-wrap:wrap"><button class="btn ghost sm" id="exportWl">下載自選清單 .txt</button><button class="btn ghost sm" id="copyWl">複製清單</button></div>
+    <p class="note" style="margin-top:6px">TradingView → 觀察清單 →「匯入清單」選這個檔案。每一檔的詳細頁可以產生 Pine 指標，把關鍵價位畫進 TradingView。</p></div>
+</section>
+
 <!-- 體檢 -->
 <section class="tab" id="tab-health">
   <div class="alerts" id="alerts"></div>
@@ -162,6 +190,7 @@ th:first-child,td:first-child{text-align:left}
       <button data-v="size">資金最大</button>
       <button data-v="week">本週最賺</button>
     </div>
+    <div class="seg" id="whaleKind"><button data-v="all" class="on">全部</button><button data-v="c">加密貨幣</button><button data-v="u">美股與其他</button></div>
     <h2>巨鯨 24 小時在買賣什麼 <small id="whaleFillNote"></small></h2>
     <div class="card" id="whaleFlow"><div class="empty">切換到此分頁後開始載入…</div></div>
     <h2>巨鯨目前持倉共識 <small>多空部位加總</small></h2>
@@ -194,8 +223,10 @@ th:first-child,td:first-child{text-align:left}
 <section class="tab" id="tab-market">
   <div class="seg" id="mkSeg">
     <button data-v="list" class="on">排行</button>
-    <button data-v="heat">熱力圖</button>
-    <button data-v="sector">板塊輪動</button>
+    <button data-v="heat">熱力</button>
+    <button data-v="sector">板塊</button>
+    <button data-v="us">美股</button>
+    <button data-v="news">新聞</button>
     <button data-v="trend">熱搜</button>
   </div>
   <input id="coinFilter" placeholder="篩選名稱或代號，例如 SOL" style="margin-bottom:10px">
@@ -238,7 +269,8 @@ th:first-child,td:first-child{text-align:left}
 </main>
 
 <nav><div class="in">
-  <button data-tab="health" class="on"><i>◉</i>體檢</button>
+  <button data-tab="today" class="on"><i>⚑</i>作戰</button>
+  <button data-tab="health"><i>◉</i>體檢</button>
   <button data-tab="whale"><i>🐋</i>巨鯨</button>
   <button data-tab="market"><i>₿</i>市場</button>
   <button data-tab="hold"><i>▤</i>持倉<span class="dot" id="todoDot" style="display:none"></span></button>
@@ -618,7 +650,7 @@ function computeHealth() {
   // 1 鏈上估值
   const L1 = [];
   if (last) {
-    const realized = last.c / last.mvrv;
+    const realized = state.realized = last.c / last.mvrv;
     H.parts.mvrv = last.mvrv;
     L1.push(ind('MVRV', last.mvrv.toFixed(2), '已實現價格（全網平均成本）' + fmt.price(realized), last.mvrv < 1 ? 'up' : last.mvrv > 3 ? 'down' : 'flat',
       '市值 ÷ 全網持幣成本。<1 代表多數人虧損（歷史大底區），>3 歷史上接近頂部。', b.slice(-365).map(x => x.mvrv)));
@@ -858,12 +890,12 @@ async function loadWhales(force) {
 function aggregatePositions(W) {
   const m = new Map();
   W.list.forEach(w => (w.pos || []).forEach(p => {
-    const o = m.get(p.coin) || { coin: p.coin, long: 0, short: 0, nL: 0, nS: 0, upnl: 0, wsum: 0, wpx: 0 };
-    if (p.szi > 0) { o.long += p.val; o.nL++; } else { o.short += p.val; o.nS++; }
+    const o = m.get(p.coin) || { coin: p.coin, long: 0, short: 0, nL: 0, nS: 0, upnl: 0, wsum: 0, wpx: 0, lw: 0, lpx: 0, sw: 0, spx: 0, liqL: [], liqS: [] };
+    if (p.szi > 0) { o.long += p.val; o.nL++; o.lw += p.szi; o.lpx += p.szi * p.entry; if (p.liq) o.liqL.push(p.liq); } else { o.short += p.val; o.nS++; o.sw -= p.szi; o.spx -= p.szi * p.entry; if (p.liq) o.liqS.push(p.liq); }
     o.upnl += p.upnl; o.wsum += Math.abs(p.szi); o.wpx += Math.abs(p.szi) * p.entry;
     m.set(p.coin, o);
   }));
-  W.pos = [...m.values()].map(o => ({ ...o, net: o.long - o.short, entry: o.wsum ? o.wpx / o.wsum : null })).sort((a, b) => (b.long + b.short) - (a.long + a.short));
+  W.pos = [...m.values()].map(o => ({ ...o, net: o.long - o.short, entry: o.wsum ? o.wpx / o.wsum : null, longEntry: o.lw ? o.lpx / o.lw : null, shortEntry: o.sw ? o.spx / o.sw : null, liqLong: median(o.liqL), liqShort: median(o.liqS) })).sort((a, b) => (b.long + b.short) - (a.long + a.short));
 }
 function aggregateFills(W) {
   const m = new Map(), g = new Map();
@@ -892,23 +924,23 @@ function renderWhales() {
   $('#whaleFillNote').textContent = W.list.length ? `${W.list.length} 位巨鯨，總資金 ${fmt.big(totalEq)}` : '';
   // 24h 流向
   if (W.flow) {
-    const top = W.flow.filter(f => f.buy + f.sell > 5e4).slice(0, 15);
+    const top = W.flow.filter(f => f.buy + f.sell > 5e4 && passKind(f.coin)).slice(0, 15);
     const mx = Math.max(1, ...top.map(f => Math.max(f.buy, f.sell)));
     $('#whaleFlow').innerHTML = top.length ? `<div class="note" style="margin-bottom:4px">買方＝開多＋平空；賣方＝開空＋平多。依淨額排序。</div>` + top.map(f => `<div class="row" data-whalecoin="${esc(f.coin)}" style="display:block">
-      <div class="flex"><b style="flex:1">${esc(f.coin)} <span class="act ${f.net > 0 ? 'up' : 'down'}">淨${f.net > 0 ? '買' : '賣'} ${fmt.big(Math.abs(f.net))}</span></b><span class="note">${f.nb} 鯨買／${f.ns} 鯨賣</span></div>
+      <div class="flex"><b style="flex:1">${coinName(f.coin)} <span class="act ${f.net > 0 ? 'up' : 'down'}">淨${f.net > 0 ? '買' : '賣'} ${fmt.big(Math.abs(f.net))}</span></b><span class="note">${f.nb} 鯨買／${f.ns} 鯨賣</span></div>
       <div class="bar2"><i style="width:${f.buy / mx * 50}%;margin-left:${50 - f.buy / mx * 50}%;background:var(--up)"></i><i style="width:${f.sell / mx * 50}%;background:var(--down)"></i></div>
       <div class="note" style="display:flex;justify-content:space-between"><span>買 ${fmt.big(f.buy)}（開多 ${fmt.big(f.ol)}、平空 ${fmt.big(f.cs)}）</span><span>賣 ${fmt.big(f.sell)}</span></div></div>`).join('')
       : '<div class="empty">過去 24 小時巨鯨沒有明顯成交</div>';
   }
   // 持倉共識
-  const P = W.pos.slice(0, 15), pm = Math.max(1, ...P.map(p => Math.max(p.long, p.short)));
-  $('#whalePos').innerHTML = P.length ? `<table><thead><tr><th>幣種</th><th>多單</th><th>空單</th><th>淨部位</th></tr></thead><tbody>` + P.map(p => `<tr data-whalecoin="${esc(p.coin)}" style="cursor:pointer"><td><b>${esc(p.coin)}</b><div class="mute" style="font-size:11px">${p.nL} 多／${p.nS} 空 · 浮盈 <span class="${cls(p.upnl)}">${fmt.sbig(p.upnl)}</span></div>
+  const P = W.pos.filter(p => passKind(p.coin)).slice(0, 15), pm = Math.max(1, ...P.map(p => Math.max(p.long, p.short)));
+  $('#whalePos').innerHTML = P.length ? `<table><thead><tr><th>幣種</th><th>多單</th><th>空單</th><th>淨部位</th></tr></thead><tbody>` + P.map(p => `<tr data-whalecoin="${esc(p.coin)}" style="cursor:pointer"><td><b>${coinName(p.coin)}</b><div class="mute" style="font-size:11px">${p.nL} 多／${p.nS} 空 · 浮盈 <span class="${cls(p.upnl)}">${fmt.sbig(p.upnl)}</span></div>
       <div class="bar2" style="width:120px"><i style="width:${p.long / pm * 50}%;margin-left:${50 - p.long / pm * 50}%;background:var(--up)"></i><i style="width:${p.short / pm * 50}%;background:var(--down)"></i></div></td>
       <td class="num up">${fmt.big(p.long)}</td><td class="num down">${fmt.big(p.short)}</td><td class="num ${cls(p.net)}"><b>${fmt.sbig(p.net)}</b></td></tr>`).join('') + '</tbody></table>'
-    : `<div class="empty">${W.list.length ? '巨鯨目前沒有持倉' : '載入中…'}</div>`;
+    : `<div class="empty">${!W.list.length ? '載入中…' : whaleKind === 'all' ? '巨鯨目前沒有持倉' : '這個類別目前沒有持倉'}</div>`;
   // 動作
-  if (W.feed) $('#whaleFeed').innerHTML = W.feed.length ? W.feed.map(e => `<div class="it" data-whale="${esc(e.w.a)}" style="cursor:pointer"><div class="t">${fmt.ago(e.t)} · ${whaleTag(e.w)} · 帳戶 ${fmt.big(e.w.eq || e.w.v)} · 本月 <span class="${cls(e.w.w.month.pnl)}">${fmt.sbig(e.w.w.month.pnl)}</span></div>
-      <div><span class="act ${e.buy ? 'up' : 'down'}">${esc(e.dir)}</span> <b>${esc(e.coin)}</b> ${fmt.big(e.usd)} <span class="mute">均價 ${fmt.price(e.px)}</span>${e.pnl ? ` <span class="${cls(e.pnl)}">已實現 ${fmt.sbig(e.pnl)}</span>` : ''}</div></div>`).join('') : '<div class="empty">沒有 ≥ $10 萬的動作</div>';
+  if (W.feed) { const F = W.feed.filter(e => passKind(e.coin)); $('#whaleFeed').innerHTML = F.length ? F.map(e => `<div class="it" data-whale="${esc(e.w.a)}" style="cursor:pointer"><div class="t">${fmt.ago(e.t)} · ${whaleTag(e.w)} · 帳戶 ${fmt.big(e.w.eq || e.w.v)} · 本月 <span class="${cls(e.w.w.month.pnl)}">${fmt.sbig(e.w.w.month.pnl)}</span></div>
+      <div><span class="act ${e.buy ? 'up' : 'down'}">${esc(e.dir)}</span> <b>${coinName(e.coin)}</b> ${fmt.big(e.usd)} <span class="mute">均價 ${fmt.price(e.px)}</span>${e.pnl ? ` <span class="${cls(e.pnl)}">已實現 ${fmt.sbig(e.pnl)}</span>` : ''}</div></div>`).join('') : '<div class="empty">沒有 ≥ $10 萬的動作</div>'; }
   // 名單
   $('#whaleList').innerHTML = W.list.map((w, i) => {
     const top = (w.pos || []).slice().sort((a, b) => b.val - a.val)[0];
@@ -931,7 +963,7 @@ function openWhaleCoin(coin) {
   W.list.forEach(w => (w.pos || []).filter(p => p.coin === coin).forEach(p => holders.push({ w, p })));
   holders.sort((a, b) => b.p.val - a.p.val);
   const acts = (W.feed || []).filter(e => e.coin === coin);
-  openSheet(`<div class="flex" style="justify-content:space-between"><div style="font-size:18px;font-weight:800">🐋 ${esc(coin)}</div><button class="btn ghost sm" data-close>✕</button></div>
+  openSheet(`<div class="flex" style="justify-content:space-between"><div style="font-size:18px;font-weight:800">🐋 ${coinName(coin)} ${tvBtn(coin.includes(':') ? 'u' : 'c', coin)}</div><button class="btn ghost sm" data-close>✕</button></div>
     <h2>哪些巨鯨持有</h2><div class="card">${holders.map(({ w, p }) => `<div class="row" data-whale="${esc(w.a)}"><div class="nm"><b>${whaleTag(w)} <span class="act ${p.szi > 0 ? 'up' : 'down'}">${p.szi > 0 ? '多' : '空'} ${p.lev || ''}x</span></b><span>開倉 ${fmt.price(p.entry)}${p.liq ? ' · 強平 ' + fmt.price(p.liq) : ''}</span></div><div class="px num"><div>${fmt.big(p.val)}</div><div class="${cls(p.upnl)}">${fmt.sbig(p.upnl)}</div></div></div>`).join('') || '<div class="empty">名單內沒有人持有</div>'}</div>
     <h2>24h 動作</h2><div class="card feed">${acts.map(e => `<div class="it"><div class="t">${fmt.ago(e.t)} · ${whaleTag(e.w)}</div><b>${esc(e.dir)}</b> ${fmt.big(e.usd)} <span class="mute">均價 ${fmt.price(e.px)}</span></div>`).join('') || '<div class="empty">沒有 ≥ $10 萬的動作</div>'}</div>`);
 }
@@ -1007,6 +1039,16 @@ function renderMarket() {
   const el = $('#mkOut'), q = $('#coinFilter').value.trim().toLowerCase();
   const wlIds = new Set(state.wl.crypto.map(c => c.id));
   $('#coinFilter').style.display = mkView === 'list' || mkView === 'heat' ? '' : 'none';
+  if (mkView === 'us' || mkView === 'news') {
+    if (el.dataset.w !== mkView) {
+      el.dataset.w = mkView;
+      el.innerHTML = '<div id="tvMk" style="min-height:540px"></div><p class="note" style="margin-top:6px">由 TradingView 提供。' + (mkView === 'us' ? 'S&P 500 依類股分組，面積＝市值，顏色＝今日漲跌。' : '') + '</p>';
+      if (mkView === 'us') tvWidget($('#tvMk'), 'stock-heatmap', { dataSource: 'SPX500', grouping: 'sector', blockSize: 'market_cap_basic', blockColor: 'change', hasTopBar: false, isZoomEnabled: true, hasSymbolTooltip: true, isMonoSize: false, height: 540 });
+      else tvWidget($('#tvMk'), 'timeline', { feedMode: 'all_symbols', displayMode: 'regular', height: 560 });
+    }
+    return;
+  }
+  el.dataset.w = '';
   if (mkView === 'trend') {
     const t = state.trending;
     if (!t) { el.innerHTML = `<div class="empty">${esc(state.errors.trend || '載入中…')}</div>`; return; }
@@ -1073,25 +1115,26 @@ function coinPrice(id) {
 function todoOf(s, held) { return s && (s.fresh || (held && (s.adv.c === 'down' || s.adv.c === 'warn'))); }
 function renderHold() {
   let tot = 0, cost = 0, cv = 0, uv = 0, todo = 0;
+  const todoRows = state.todoRows = [];
   const cr = state.wl.crypto.map(it => {
     const k = 'c:' + it.id, p = coinPrice(it.id), s = signals(state.bars[it.id]), pl = holdPL(k, p.px);
     if (pl) { tot += pl.val; cv += pl.val; if (pl.cost != null) cost += pl.cost; }
-    if (todoOf(s, !!pl)) todo++;
+    if (todoOf(s, !!pl)) { todo++; todoRows.push({ kind: 'coin', key: it.id, name: it.sym.toUpperCase(), s, pl }); }
     const wf = state.whale?.flow?.find(x => x.coin === it.sym.toUpperCase());
     return `<div class="row" data-coin="${esc(it.id)}"><div class="nm"><b>${esc(it.sym.toUpperCase())} ${s?.fresh ? `<span class="act ${s.fresh.c}">${s.fresh.t}</span>` : ''}</b>
       <span>${esc(it.name || '')}${s?.chg5 != null ? ' · 5日 ' + fmt.pct(s.chg5) : ''}${wf ? ` · 🐋 24h 淨${wf.net > 0 ? '買' : '賣'} ${fmt.big(Math.abs(wf.net))}` : ''}</span>
       ${s ? `<div class="tags">${s.tags.filter(t => t !== s.fresh).slice(0, 4).map(tagHtml).join('')}</div>` : ''}${advHtml(s)}</div>
-      <div class="px num"><div>${fmt.price(p.px)}</div><div class="${cls(p.ch)}">${fmt.pct(p.ch)}</div>${plHtml(pl)}<button class="btn ghost sm" style="margin-top:4px" data-edit="${esc(k)}">編輯</button></div></div>`;
+      <div class="px num"><div>${fmt.price(p.px)}</div><div class="${cls(p.ch)}">${fmt.pct(p.ch)}</div>${plHtml(pl)}<div class="flex" style="justify-content:flex-end;gap:4px;margin-top:4px">${tvBtn('c', it.sym)}<button class="btn ghost sm" data-edit="${esc(k)}">編輯</button></div></div></div>`;
   });
   $('#holdCrypto').innerHTML = cr.join('') || '<div class="empty">還沒有加密貨幣，按「＋ 加入」</div>';
   const us = state.wl.us.map(sym => {
     const k = 'u:' + sym, s = signals(state.usBars[sym]), pl = holdPL(k, s?.last), err = state.errors['td_' + sym];
     if (pl) { tot += pl.val; uv += pl.val; if (pl.cost != null) cost += pl.cost; }
-    if (todoOf(s, !!pl)) todo++;
+    if (todoOf(s, !!pl)) { todo++; todoRows.push({ kind: 'us', key: sym, name: sym, s, pl }); }
     return `<div class="row" data-us="${esc(sym)}"><div class="nm"><b>${esc(sym)} ${s?.fresh ? `<span class="act ${s.fresh.c}">${s.fresh.t}</span>` : ''}</b>
       <span>${s ? '5日 ' + fmt.pct(s.chg5) + ' · 20日 ' + fmt.pct(s.chg20) : esc(err || (state.set.tdKey ? '載入中…' : '需要 Twelve Data API key'))}</span>
       ${s ? `<div class="tags">${s.tags.filter(t => t !== s.fresh).slice(0, 4).map(tagHtml).join('')}</div>` : ''}${advHtml(s)}</div>
-      <div class="px num"><div>${s ? '$' + s.last.toFixed(2) : '—'}</div><div class="${cls(s?.chg1)}">${s ? fmt.pct(s.chg1) : ''}</div>${plHtml(pl)}<button class="btn ghost sm" style="margin-top:4px" data-edit="${esc(k)}">編輯</button></div></div>`;
+      <div class="px num"><div>${s ? '$' + s.last.toFixed(2) : '—'}</div><div class="${cls(s?.chg1)}">${s ? fmt.pct(s.chg1) : ''}</div>${plHtml(pl)}<div class="flex" style="justify-content:flex-end;gap:4px;margin-top:4px">${tvBtn('u', sym)}<button class="btn ghost sm" data-edit="${esc(k)}">編輯</button></div></div></div>`;
   });
   $('#holdUS').innerHTML = us.join('') || '<div class="empty">還沒有美股</div>';
   const btcPx = coinPrice('bitcoin').px;
@@ -1196,6 +1239,7 @@ async function openDetail(kind, key) {
     <div class="flex">${kind === 'coin' ? `<button class="btn ghost sm" data-star="${esc(key)}" data-sym="${esc(item.sym)}" data-name="${esc(item.name)}" data-close>${inWl ? '★ 已加入' : '☆ 加入'}</button>` : ''}<button class="btn ghost sm" data-close>✕</button></div></div>
     <div class="flex" style="margin-top:8px;gap:16px"><div style="font-size:22px;font-weight:700" class="num">${fmt.price(s?.last)}</div><div class="num"><span class="${cls(s?.chg1)}">${fmt.pct(s?.chg1)}</span> <span class="mute">1日</span> <span class="${cls(s?.chg5)}">${fmt.pct(s?.chg5)}</span> <span class="mute">5日</span> <span class="${cls(s?.chg20)}">${fmt.pct(s?.chg20)}</span> <span class="mute">20日</span></div></div>
     ${advHtml(s)}
+    <div class="flex" style="margin-top:8px;flex-wrap:wrap">${tvBtn(kind === 'coin' ? 'c' : 'u', title)}<button class="btn ghost sm" id="dPlan">擬定交易計畫</button><button class="btn ghost sm" id="dPine">產生 Pine 指標</button></div>
     <div class="legend" style="margin-top:6px">${MA_COL.map(([n, c]) => `<span><i style="background:${c}"></i>MA${n}</span>`).join('')}</div>
     <div class="chart" id="dChart"></div>
     <div class="tags">${(s?.tags || []).map(tagHtml).join('')}</div>
@@ -1203,6 +1247,9 @@ async function openDetail(kind, key) {
     ${wp || wf ? `<h2>🐋 Hyperliquid 巨鯨</h2><div class="card note">${wp ? `持倉：多 ${fmt.big(wp.long)}（${wp.nL} 人）／空 ${fmt.big(wp.short)}（${wp.nS} 人），淨 <b class="${cls(wp.net)}">${fmt.sbig(wp.net)}</b>` : ''}${wf ? `<br>24h：買 ${fmt.big(wf.buy)}／賣 ${fmt.big(wf.sell)}，淨 <b class="${cls(wf.net)}">${fmt.sbig(wf.net)}</b>` : ''}<br><button class="btn ghost sm" style="margin-top:6px" data-whalecoin="${esc(title)}">看是哪些巨鯨</button></div>` : ''}
     ${inWl ? `<button class="btn ghost sm" style="margin-top:10px" data-edit="${esc(hk)}">編輯持倉數量與成本</button>` : ''}`);
   drawChart($('#dChart'), bars);
+  const k = kind === 'coin' ? 'c' : 'u';
+  $('#dPlan').onclick = () => openPlan({ kind: k, sym: title.toUpperCase() }, bars);
+  $('#dPine').onclick = () => openPine(k, title.toUpperCase(), bars, s);
 }
 
 /* ================= 設定 ================= */
@@ -1285,6 +1332,280 @@ function runBacktest() {
   ch.timeScale().fitContent();
 }
 
+/* ================= 作戰首頁 ================= */
+state.plans = store.get('plans', []);
+state.risk = Object.assign({ acct: 10000, riskPct: 1, dayPct: 3 }, store.get('risk', {}));
+const savePlans = () => store.set('plans', state.plans);
+const saveRisk = () => store.set('risk', state.risk);
+const median = a => { if (!a || !a.length) return null; const b = [...a].sort((x, y) => x - y), m = b.length >> 1; return b.length % 2 ? b[m] : (b[m - 1] + b[m]) / 2; };
+const lastClose = s => { const b = state.usBars[s]; return b && b.length ? b[b.length - 1].c : null; };
+const todayKey = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+
+// 巨鯨：加密／美股切換
+let whaleKind = 'all';
+const passKind = c => whaleKind === 'all' || (whaleKind === 'u') === String(c).includes(':');
+const coinName = c => String(c).includes(':') ? esc(String(c).split(':').pop()) + ' <span class="tag">美股等</span>' : esc(c);
+
+// TradingView
+function tvSym(kind, sym) {
+  let s = String(sym || '').toUpperCase().replace(/^.*:/, '');
+  if (kind === 'u') return s;
+  if (/^K[A-Z]{3,}$/.test(s) && String(sym).startsWith('k')) s = s.slice(1); // Hyperliquid 的 kPEPE 等千倍合約
+  return 'BINANCE:' + s + 'USDT';
+}
+const tvUrl = t => 'https://www.tradingview.com/chart/?symbol=' + encodeURIComponent(t);
+const tvBtn = (kind, sym) => `<a class="tvbtn" href="${tvUrl(tvSym(kind, sym))}" target="_blank" rel="noopener">TradingView ↗</a>`;
+const wlTvList = () => [...new Set([...state.wl.crypto.map(c => tvSym('c', c.sym)), ...state.wl.us.map(s => tvSym('u', s))])];
+async function copyText(t) {
+  try { await navigator.clipboard.writeText(t); toast('已複製'); }
+  catch (e) { openSheet(`<div class="flex" style="justify-content:space-between"><b>請手動複製</b><button class="btn ghost sm" data-close>✕</button></div><textarea style="height:180px;margin-top:10px" readonly>${esc(t)}</textarea>`); }
+}
+function exportWl() {
+  const txt = wlTvList().join(',');
+  try {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([txt], { type: 'text/plain' }));
+    a.download = 'invest-radar-watchlist.txt';
+    document.body.appendChild(a); a.click(); a.remove();
+    toast('已下載。到 TradingView 觀察清單選「匯入清單」');
+  } catch (e) { copyText(txt); }
+}
+function tvWidget(el, name, cfg) {
+  if (!el) return;
+  el.innerHTML = '<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div></div>';
+  const sc = document.createElement('script');
+  sc.src = 'https://s3.tradingview.com/external-embedding/embed-widget-' + name + '.js';
+  sc.async = true;
+  sc.text = JSON.stringify(Object.assign({ colorTheme: state.set.theme === 'light' ? 'light' : 'dark', isTransparent: true, locale: 'zh_TW', width: '100%' }, cfg));
+  el.firstChild.appendChild(sc);
+}
+let tvCalLoaded = false;
+function loadTvCalendar() {
+  if (tvCalLoaded) return; tvCalLoaded = true;
+  tvWidget($('#tvCalendar'), 'events', { height: 420, importanceFilter: '0,1', countryFilter: 'us' });
+}
+
+// 市場環境燈號
+function btcQqqCorr() {
+  const q = state.usBars.QQQ, b = state.btc;
+  if (!q || !b || q.length < 40) return null;
+  const bm = new Map(b.map(x => [x.t, x.c])), pts = [];
+  for (const x of q) { const c = bm.get(x.t); if (c) pts.push([x.c, c]); }
+  const p = pts.slice(-31); if (p.length < 20) return null;
+  const ra = [], rb = [];
+  for (let i = 1; i < p.length; i++) { ra.push(p[i][0] / p[i - 1][0] - 1); rb.push(p[i][1] / p[i - 1][1] - 1); }
+  const mean = a => a.reduce((s, x) => s + x, 0) / a.length, ma = mean(ra), mb = mean(rb);
+  let sab = 0, saa = 0, sbb = 0;
+  for (let i = 0; i < ra.length; i++) { const da = ra[i] - ma, db = rb[i] - mb; sab += da * db; saa += da * da; sbb += db * db; }
+  return saa && sbb ? sab / Math.sqrt(saa * sbb) : null;
+}
+function computeRegime() {
+  const H = lastHealth; if (!H || H.temp == null) return null;
+  const r = []; let def = 0, agg = 0;
+  const t = H.temp, m = H.mom ?? 0;
+  if (m <= -20) { def++; r.push(`資金動能 ${m.toFixed(0)}：資金在流出`); }
+  else if (m >= 20) { agg++; r.push(`資金動能 +${m.toFixed(0)}：資金在流入`); }
+  else r.push(`資金動能 ${m > 0 ? '+' : ''}${m.toFixed(0)}：方向不明`);
+  if (t >= 80) { def++; r.push(`週期溫度 ${t.toFixed(0)}：過熱`); }
+  else if (t < 35) r.push(`週期溫度 ${t.toFixed(0)}：偏冷，中長線便宜，但不代表短線會漲`);
+  else r.push(`週期溫度 ${t.toFixed(0)}：溫和`);
+  const vix = lastClose('VIX');
+  if (vix != null) { if (vix >= 25) { def++; r.push(`VIX ${vix.toFixed(1)}：美股恐慌`); } else if (vix < 18) { agg++; r.push(`VIX ${vix.toFixed(1)}：美股平穩`); } else r.push(`VIX ${vix.toFixed(1)}`); }
+  const c = btcQqqCorr();
+  if (c != null) r.push(`BTC 與那斯達克 30 日相關係數 ${c.toFixed(2)}${c > 0.5 ? '：美股走勢要一起看' : ''}`);
+  const d = state.deriv?.BTCUSDT;
+  if (d?.oiChg30 > 20) { def += 0.5; r.push(`BTC 未平倉量 30 日 +${d.oiChg30.toFixed(0)}%：槓桿堆積，留意插針`); }
+  if (d?.fund7 != null && d.fund7 * 3 * 365 > 30) { def += 0.5; r.push('資金費率偏高：多頭擁擠'); }
+  const lvl = def >= 1 ? 'def' : agg >= 1 && t < 65 ? 'agg' : 'norm';
+  const M = {
+    agg: { label: '積極', cls: 'up', tip: '趨勢與資金同向：可用正常部位、順勢操作' },
+    norm: { label: '正常', cls: 'flat', tip: '只做最強的標的與最清楚的型態，嚴守停損' },
+    def: { label: '防守', cls: 'down', tip: '降低部位與交易次數，以保住資金為主' }
+  };
+  return { lvl, ...M[lvl], reasons: r };
+}
+
+// 選擇權到期
+function expiries() {
+  const now = new Date(), out = [];
+  const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 8));
+  while (!(d.getUTCDay() === 5 && d > now)) d.setUTCDate(d.getUTCDate() + 1);
+  const nx = new Date(d); nx.setUTCDate(nx.getUTCDate() + 7);
+  const lastFri = nx.getUTCMonth() !== d.getUTCMonth(), quarter = [2, 5, 8, 11].includes(d.getUTCMonth());
+  out.push({ t: d, name: 'Deribit 加密選擇權到期', note: lastFri ? (quarter ? '季度結算，影響通常最大' : '月結算') : '週結算', time: '台北 16:00' });
+  const third = (y, m) => { const x = new Date(Date.UTC(y, m, 1, 21)); let c = 0; for (;;) { if (x.getUTCDay() === 5 && ++c === 3) return x; x.setUTCDate(x.getUTCDate() + 1); } };
+  let y = now.getUTCFullYear(), m = now.getUTCMonth(), t3 = third(y, m);
+  if (t3 < now) { m++; if (m > 11) { m = 0; y++; } t3 = third(y, m); }
+  out.push({ t: t3, utc: true, name: '美股月選擇權到期', note: [2, 5, 8, 11].includes(t3.getUTCMonth()) ? '四巫日（季度結算）' : '每月第三個週五', time: '美東週五收盤（台北週六清晨）' });
+  return out;
+}
+
+// 交易計畫與風控
+function atr(bars, n = 14) {
+  if (!bars || bars.length <= n + 1) return null;
+  let s = 0;
+  for (let i = bars.length - n; i < bars.length; i++) { const b = bars[i], p = bars[i - 1]; s += Math.max(b.h - b.l, Math.abs(b.h - p.c), Math.abs(b.l - p.c)); }
+  const v = s / n; return v > 0 ? v : null;
+}
+const qtyFmt = (q, kind) => q == null || !isFinite(q) ? '—' : kind === 'u' ? Math.floor(q).toLocaleString('en-US') + ' 股' : (q >= 100 ? q.toFixed(0) : q >= 1 ? q.toFixed(2) : q.toPrecision(3)) + ' 顆';
+function calcPlan(p) {
+  const R = state.risk, e = +p.entry, st = +p.stop, tg = +p.target, lev = Math.max(1, +p.lev || 1), long = p.dir === 'long';
+  const o = { ok: false, warn: [] };
+  if (!(e > 0 && st > 0)) return o;
+  if (long ? st >= e : st <= e) { o.warn.push(long ? '做多時，停損價要低於進場價' : '做空時，停損價要高於進場價'); return o; }
+  const per = Math.abs(e - st);
+  o.riskAmt = R.acct * R.riskPct / 100;
+  o.qty = o.riskAmt / per;
+  if (p.kind === 'u') { o.qty = Math.floor(o.qty); if (o.qty < 1) { o.warn.push('風險額度連 1 股都買不起，請放寬停損或提高每筆風險'); return o; } o.riskAmt = o.qty * per; }
+  o.notional = o.qty * e; o.margin = o.notional / lev; o.stopPct = per / e * 100;
+  if (tg > 0) {
+    if (long ? tg <= e : tg >= e) o.warn.push('目標價方向不對');
+    else { o.rr = Math.abs(tg - e) / per; if (o.rr < 1.5) o.warn.push('風險報酬比低於 1 : 1.5，值得再想想'); }
+  }
+  if (lev > 1) {
+    o.liq = long ? e * (1 - 1 / lev + 0.005) : e * (1 + 1 / lev - 0.005);
+    if (long ? o.liq >= st : o.liq <= st) o.warn.push('強平價比停損價更近：會先被強平，請降低槓桿');
+  }
+  if (o.margin > R.acct) o.warn.push('需要的保證金超過帳戶資金：請縮小部位，或改用合約並提高槓桿');
+  if (lockState().locked) o.warn.push('今天已達每日最大虧損，建議停手');
+  o.ok = true; return o;
+}
+function dayPnl() { return state.plans.filter(p => p.status === 'closed' && p.closedDay === todayKey()).reduce((s, p) => s + (p.pnl || 0), 0); }
+function lockState() { const lim = state.risk.acct * state.risk.dayPct / 100, pnl = dayPnl(); return { pnl, lim, locked: lim > 0 && pnl <= -lim }; }
+function openPlan(pre = {}, bars) {
+  const last = bars && bars.length ? bars[bars.length - 1].c : null, a = atr(bars);
+  const P = v => v == null ? '' : +(+v).toPrecision(6);
+  const p = Object.assign({ kind: 'c', sym: '', dir: 'long', entry: P(last), stop: last && a ? P(last - 1.5 * a) : '', target: last && a ? P(last + 3 * a) : '', lev: 1, reason: '', exit: '' }, pre);
+  openSheet(`<div class="flex" style="justify-content:space-between"><b style="font-size:18px">交易計畫</b><button class="btn ghost sm" data-close>✕</button></div>
+    ${lockState().locked ? '<div class="alerts" style="margin-top:10px"><div class="al"><b class="down">⛔ 停手</b><span>今天已達每日最大虧損，建議不要再開新倉。</span></div></div>' : ''}
+    <div class="grid2" style="margin-top:12px">
+      <div class="field"><label>標的</label><input id="pSym" value="${esc(p.sym)}" placeholder="例如 BTC、NVDA"></div>
+      <div class="field"><label>市場</label><select id="pKind"><option value="c">加密貨幣</option><option value="u" ${p.kind === 'u' ? 'selected' : ''}>美股</option></select></div>
+      <div class="field"><label>方向</label><select id="pDir"><option value="long">做多</option><option value="short">做空</option></select></div>
+      <div class="field"><label>槓桿（現貨填 1）</label><input id="pLev" type="number" min="1" step="1" value="${p.lev}"></div>
+      <div class="field"><label>進場價</label><input id="pEntry" type="number" step="any" value="${p.entry}"></div>
+      <div class="field"><label>停損價</label><input id="pStop" type="number" step="any" value="${p.stop}"></div>
+      <div class="field"><label>目標價</label><input id="pTarget" type="number" step="any" value="${p.target}"></div>
+      <div class="field"><label>帳戶資金 ／ 每筆風險 %</label><div class="flex"><input id="pAcct" type="number" value="${state.risk.acct}"><input id="pRisk" type="number" step="0.1" value="${state.risk.riskPct}" style="width:72px"></div></div>
+    </div>
+    ${a ? `<p class="note">預設停損＝現價 − 1.5 倍 ATR(14)，目標＝現價 + 3 倍 ATR；ATR ${fmt.price(a)}。做空時請自行對調。</p>` : ''}
+    <div class="card" id="pOut" style="margin-top:8px"></div>
+    <div class="field" style="margin-top:10px"><label>進場理由</label><textarea id="pReason" placeholder="例如：站回月線、巨鯨淨買、溫度偏冷">${esc(p.reason)}</textarea></div>
+    <div class="field"><label>出場條件</label><textarea id="pExit" placeholder="例如：收盤跌破季線全出；到目標價先出一半">${esc(p.exit)}</textarea></div>
+    <button class="btn" id="pSave" style="width:100%">儲存計畫</button>`);
+  if (p.dir === 'short') $('#pDir').value = 'short';
+  const read = () => ({ kind: $('#pKind').value, sym: $('#pSym').value.trim().toUpperCase(), dir: $('#pDir').value, lev: Math.max(1, +$('#pLev').value || 1), entry: +$('#pEntry').value, stop: +$('#pStop').value, target: +$('#pTarget').value || null, reason: $('#pReason').value.trim(), exit: $('#pExit').value.trim() });
+  const upd = () => {
+    state.risk.acct = +$('#pAcct').value || state.risk.acct; state.risk.riskPct = +$('#pRisk').value || state.risk.riskPct; saveRisk();
+    const q = read(), o = calcPlan(q);
+    $('#pOut').innerHTML = o.ok ? `<div class="meta" style="grid-template-columns:1fr auto 1fr auto">
+        <span>部位數量</span><b>${qtyFmt(o.qty, q.kind)}</b><span>部位價值</span><b>${fmt.big(o.notional)}</b>
+        <span>最多虧損</span><b class="down">${fmt.big(o.riskAmt)}</b><span>需要資金</span><b>${fmt.big(o.margin)}</b>
+        <span>停損距離</span><b>${o.stopPct.toFixed(2)}%</b><span>風險報酬比</span><b>${o.rr ? '1 : ' + o.rr.toFixed(1) : '—'}</b>
+        ${o.liq ? `<span>估算強平價</span><b>${fmt.price(o.liq)}</b><span></span><b></b>` : ''}</div>
+        ${o.warn.map(w => `<div class="warnl">⚠ ${esc(w)}</div>`).join('')}`
+      : `<div class="note">${esc(o.warn[0] || '填入進場價與停損價，就會算出該買多少')}</div>`;
+  };
+  ['pSym', 'pLev', 'pEntry', 'pStop', 'pTarget', 'pAcct', 'pRisk'].forEach(id => $('#' + id).oninput = upd);
+  ['pKind', 'pDir'].forEach(id => $('#' + id).onchange = upd);
+  upd();
+  $('#pSave').onclick = () => {
+    const q = read(), o = calcPlan(q);
+    if (!q.sym) return toast('請填寫標的');
+    if (!o.ok) return toast(o.warn[0] || '請確認價格');
+    state.plans.unshift({ ...q, pid: Date.now().toString(36), qty: o.qty, riskAmt: o.riskAmt, rr: o.rr ?? null, liq: o.liq ?? null, regime: computeRegime()?.label || null, status: 'plan', created: Date.now() });
+    savePlans(); closeModal(); goTab('today'); toast('計畫已儲存');
+  };
+}
+function planAction(act, pid) {
+  const i = state.plans.findIndex(x => x.pid === pid); if (i < 0) return;
+  const p = state.plans[i];
+  if (act === 'open') { p.status = 'open'; p.openedAt = Date.now(); }
+  if (act === 'close') {
+    const x = +($('#cx-' + pid)?.value);
+    if (!(x > 0)) return toast('請先填出場價');
+    p.exitPx = x; p.pnl = (p.dir === 'long' ? x - p.entry : p.entry - x) * p.qty;
+    p.status = 'closed'; p.closedAt = Date.now(); p.closedDay = todayKey();
+  }
+  if (act === 'del') state.plans.splice(i, 1);
+  savePlans(); renderToday();
+}
+const PST = { plan: ['計畫中', 'flat'], open: ['已進場', 'warn'], closed: ['已平倉', 'flat'] };
+function planCard(p) {
+  return `<div class="card" style="margin-top:8px"><div class="flex"><b style="flex:1">${esc(p.sym)} <span class="act ${p.dir === 'long' ? 'up' : 'down'}">${p.dir === 'long' ? '做多' : '做空'}${p.lev > 1 ? ' ' + p.lev + 'x' : ''}</span> <span class="act ${PST[p.status][1]}">${PST[p.status][0]}</span></b>${tvBtn(p.kind, p.sym)}</div>
+    <div class="meta" style="margin-top:6px;grid-template-columns:1fr auto 1fr auto"><span>進場</span><b>${fmt.price(p.entry)}</b><span>停損</span><b>${fmt.price(p.stop)}</b>
+      <span>目標</span><b>${p.target ? fmt.price(p.target) : '—'}</b><span>數量</span><b>${qtyFmt(p.qty, p.kind)}</b>
+      <span>最多虧損</span><b>${fmt.big(p.riskAmt)}</b><span>報酬比</span><b>${p.rr ? '1 : ' + p.rr.toFixed(1) : '—'}</b>
+      ${p.liq ? `<span>估算強平</span><b>${fmt.price(p.liq)}</b><span>建立時燈號</span><b>${esc(p.regime || '—')}</b>` : ''}</div>
+    ${p.reason ? `<div class="note" style="margin-top:6px">理由：${esc(p.reason)}</div>` : ''}${p.exit ? `<div class="note">出場條件：${esc(p.exit)}</div>` : ''}
+    ${p.status === 'closed' ? `<div style="margin-top:6px;font-size:13px">出場 ${fmt.price(p.exitPx)} · 損益 <b class="${cls(p.pnl)}">${fmt.sbig(p.pnl)}</b>（${p.riskAmt ? (p.pnl / p.riskAmt).toFixed(1) : '—'}R）</div>` : ''}
+    <div class="flex" style="margin-top:8px;flex-wrap:wrap">
+      ${p.status === 'plan' ? `<button class="btn ghost sm" data-pact="open" data-id="${p.pid}">已進場</button>` : ''}
+      ${p.status !== 'closed' ? `<input id="cx-${p.pid}" type="number" step="any" placeholder="出場價" style="width:110px;padding:5px 8px"><button class="btn ghost sm" data-pact="close" data-id="${p.pid}">平倉</button>` : ''}
+      <button class="btn ghost sm" data-pact="del" data-id="${p.pid}">刪除</button></div></div>`;
+}
+function renderToday() {
+  if (!$('#regimeCard')) return;
+  const R = computeRegime();
+  $('#regimeCard').innerHTML = R ? `<div class="regime"><div class="big ${R.cls}">${R.label}</div><div><div style="font-weight:700">${esc(R.tip)}</div><div class="note">今日市場環境</div></div></div>
+      <div class="reasons">${R.reasons.map(x => '・' + esc(x)).join('<br>')}</div>
+      ${state.set.tdKey ? '' : '<p class="note" style="margin-top:6px">在 ⚙ 設定加上 Twelve Data key 後，會納入 VIX 與 BTC／那斯達克連動。</p>'}`
+    : `<div class="empty">${esc(state.errors.chain || '計算中…')}</div>`;
+  const L = lockState();
+  $('#lockBanner').innerHTML = L.locked ? `<div class="al"><b class="down">⛔ 停手</b><span>今日已實現虧損 ${fmt.big(-L.pnl)}，達到每日上限 ${fmt.big(L.lim)}。今天不再開新倉。</span></div>` : '';
+  const T = state.todoRows || [];
+  $('#todoList').innerHTML = T.length ? T.map(x => `<div class="row" ${x.kind === 'coin' ? `data-coin="${esc(x.key)}"` : `data-us="${esc(x.key)}"`}><div class="nm"><b>${esc(x.name)} ${x.s.fresh ? `<span class="act ${x.s.fresh.c}">${x.s.fresh.t}</span>` : ''}</b>${advHtml(x.s)}</div>
+      <div class="px num"><div>${fmt.price(x.s.last)}</div>${x.pl && x.pl.pnl != null ? `<div class="pl ${cls(x.pl.pnl)}">${fmt.sbig(x.pl.pnl)}</div>` : ''}</div></div>`).join('')
+    : '<div class="empty">目前沒有需要處理的部位</div>';
+  $('#expiryCard').innerHTML = expiries().map(e => {
+    const days = Math.ceil((e.t - Date.now()) / 864e5);
+    return `<div class="ev"><div class="d">${(e.utc ? e.t.getUTCMonth() : e.t.getMonth()) + 1}/${e.utc ? e.t.getUTCDate() : e.t.getDate()}<small>週${'日一二三四五六'[e.utc ? e.t.getUTCDay() : e.t.getDay()]} · ${days <= 0 ? '今天' : days + ' 天後'}</small></div><div><b>${e.name}</b><div class="note">${e.note} · ${e.time}</div></div></div>`;
+  }).join('') + '<p class="note" style="margin-top:6px">到期前後常出現劇烈波動。下方是美國經濟數據日曆（CPI、FOMC、非農等）。</p>';
+  const ae = document.activeElement;
+  if (ae && $('#tab-today').contains(ae) && /INPUT|TEXTAREA/.test(ae.tagName)) return; // 使用者正在輸入，不重畫
+  const open = state.plans.filter(p => p.status === 'open'), openRisk = open.reduce((s, p) => s + (p.riskAmt || 0), 0);
+  $('#riskSum').innerHTML = `<div class="grid2">
+      <div class="field"><label>帳戶資金（USD）</label><input id="rAcct" type="number" value="${state.risk.acct}"></div>
+      <div class="field"><label>每筆最多虧損 %</label><input id="rRisk" type="number" step="0.1" value="${state.risk.riskPct}"></div>
+      <div class="field"><label>每日最大虧損 %</label><input id="rDay" type="number" step="0.5" value="${state.risk.dayPct}"></div>
+      <div class="field"><label>今日已實現損益</label><div class="num" style="padding:8px 0;font-weight:700"><span class="${cls(L.pnl)}">${fmt.sbig(L.pnl)}</span> <span class="mute" style="font-weight:400;font-size:12px">上限 −${fmt.big(L.lim)}</span></div></div></div>
+    <div class="note">每筆最多虧 ${fmt.big(state.risk.acct * state.risk.riskPct / 100)} · 持倉中 ${open.length} 筆，合計風險 ${fmt.big(openRisk)}（帳戶的 ${state.risk.acct ? (openRisk / state.risk.acct * 100).toFixed(1) : 0}%）</div>`;
+  ['rAcct', 'rRisk', 'rDay'].forEach(id => $('#' + id).onchange = () => {
+    state.risk.acct = +$('#rAcct').value || 10000; state.risk.riskPct = +$('#rRisk').value || 1; state.risk.dayPct = +$('#rDay').value || 3;
+    saveRisk(); $('#rDay').blur(); renderToday();
+  });
+  const list = [...state.plans.filter(p => p.status !== 'closed'), ...state.plans.filter(p => p.status === 'closed').slice(0, 10)];
+  $('#planList').innerHTML = list.length ? list.map(planCard).join('')
+    : '<div class="card empty" style="margin-top:8px">還沒有交易計畫。在任一檔的詳細頁按「擬定交易計畫」，或按上方「＋ 新計畫」。</div>';
+}
+
+// Pine Script 產生器
+function openPine(kind, sym, bars, s) {
+  const lv = [];
+  const add = (p, t, c, st = 'dashed') => { if (p != null && isFinite(p) && p > 0) lv.push(`hline(${(+p).toPrecision(8)}, "${t}", color=color.new(color.${c}, 0), linestyle=hline.style_${st})`); };
+  if (bars && bars.length > 2) { const y = bars[bars.length - 2]; add(y.h, '前日高點', 'gray', 'dotted'); add(y.l, '前日低點', 'gray', 'dotted'); }
+  if (s?.gap) { const n = s.gap.dir < 0 ? '空方缺口' : '多方缺口', c = s.gap.dir < 0 ? 'red' : 'green'; add(s.gap.lo, n + '下緣', c); add(s.gap.hi, n + '上緣', c); }
+  const wp = state.whale?.pos?.find(p => p.coin.replace(/^.*:/, '').toUpperCase() === sym && passKindFor(kind, p.coin));
+  if (wp) { add(wp.longEntry, '巨鯨多單均價', 'lime'); add(wp.shortEntry, '巨鯨空單均價', 'fuchsia'); add(wp.liqLong, '巨鯨多單強平集中', 'orange', 'solid'); add(wp.liqShort, '巨鯨空單強平集中', 'aqua', 'solid'); }
+  if (kind === 'c' && sym === 'BTC' && state.realized) add(state.realized, '全網平均成本（已實現價格）', 'yellow', 'solid');
+  const plan = state.plans.find(p => p.sym === sym && p.status !== 'closed');
+  if (plan) { add(plan.entry, '計畫進場', 'blue', 'solid'); add(plan.stop, '計畫停損', 'red', 'solid'); add(plan.target, '計畫目標', 'green', 'solid'); }
+  const code = `//@version=5
+indicator("投資雷達 · ${sym} · ${todayKey()}", overlay=true)
+plot(ta.sma(close, 20), "MA20 月線", color=color.new(color.orange, 0))
+plot(ta.sma(close, 60), "MA60 季線", color=color.new(color.blue, 0))
+plot(ta.sma(close, 200), "MA200 年線", color=color.new(color.purple, 0))
+${lv.join('\n')}
+`;
+  openSheet(`<div class="flex" style="justify-content:space-between"><b style="font-size:18px">${esc(sym)} 的 Pine 指標</b><button class="btn ghost sm" data-close>✕</button></div>
+    <p class="note" style="margin-top:8px">包含月線、季線、年線，以及 ${lv.length} 條關鍵價位${wp ? '（含巨鯨成本與強平集中區）' : '（巨鯨分頁載入後會多出巨鯨價位）'}。</p>
+    <textarea id="pineCode" style="height:240px;font-family:ui-monospace,Menlo,monospace;font-size:12px;margin-top:8px" readonly>${esc(code)}</textarea>
+    <div class="flex" style="margin-top:8px"><button class="btn" id="pineCopy">複製程式碼</button>${tvBtn(kind, sym)}</div>
+    <p class="note" style="margin-top:10px">用法：TradingView 圖表下方打開「Pine 編輯器」→ 全選後貼上 → 按「加到圖表」。價位是 ${todayKey()} 的快照，隔天請重新產生。均線依圖表週期計算，建議用日線。</p>`);
+  $('#pineCopy').onclick = () => copyText(code);
+}
+const passKindFor = (kind, c) => (kind === 'u') === String(c).includes(':');
+
 /* ================= 載入流程 ================= */
 function renderTicker() {
   const items = [], m = state.markets || [];
@@ -1294,12 +1615,12 @@ function renderTicker() {
   const d = state.deriv?.BTCUSDT; if (d?.fund != null) items.push(`<div>資金費率 <b>${d.fund.toFixed(4)}%</b></div>`);
   $('#ticker').innerHTML = items.join('');
 }
-function renderAllViews() { renderHealth(); renderTicker(); renderMarket(); renderHold(); if (state.whale) renderWhales(); }
+function renderAllViews() { renderHealth(); renderTicker(); renderMarket(); renderHold(); renderToday(); if (state.whale) renderWhales(); }
 let usBusy = false;
 async function loadUS() {
   if (!state.set.tdKey || usBusy) return;
   usBusy = true;
-  try { Object.assign(state.usBars, await tdFetch([...new Set([...MACRO.map(x => x.s), ...state.wl.us])], msg => toast(msg, 5000))); }
+  try { Object.assign(state.usBars, await tdFetch([...new Set([...MACRO.map(x => x.s), 'VIX', ...state.wl.us])], msg => toast(msg, 5000))); }
   catch (e) { state.errors.macro = '美股讀取失敗：' + e.message; toast(state.errors.macro); }
   usBusy = false; renderAllViews();
 }
@@ -1331,18 +1652,22 @@ async function loadAll(force) {
 }
 
 /* ================= 事件 ================= */
-let currentTab = 'health';
+let currentTab = 'today';
 function goTab(t) {
-  if (!document.getElementById('tab-' + t)) t = 'health';
+  if (!document.getElementById('tab-' + t)) t = 'today';
   currentTab = t;
   $$('section.tab').forEach(s => s.classList.toggle('on', s.id === 'tab-' + t));
   $$('nav button').forEach(b => b.classList.toggle('on', b.dataset.tab === t));
   try { if (location.hash !== '#' + t) history.replaceState(null, '', '#' + t); } catch (e) {} // 預覽框等沙盒環境不允許改網址
   try { window.scrollTo(0, 0); } catch (e) {}
   if (t === 'whale') loadWhales();
+  if (t === 'today') { renderToday(); loadTvCalendar(); }
   if (t === 'health' && state.hist) renderTempChart();
 }
 document.addEventListener('click', e => {
+  if (e.target.closest('a[href]')) return;
+  const p = e.target.closest('[data-pact]');
+  if (p) return planAction(p.dataset.pact, p.dataset.id);
   const t = e.target.closest('[data-tab],[data-open],[data-star],[data-edit],[data-close],[data-whale],[data-whalecoin],[data-coin],[data-us],.seg button');
   if (!t) return;
   if (t.dataset.tab) return goTab(t.dataset.tab);
@@ -1361,6 +1686,7 @@ document.addEventListener('click', e => {
     if (seg.id === 'mkSeg') { mkView = v; renderMarket(); }
     if (seg.id === 'whaleSeg') { $('#whaleHL').style.display = v === 'hl' ? '' : 'none'; $('#whaleDEX').style.display = v === 'dex' ? '' : 'none'; $('#whaleBIG').style.display = v === 'big' ? '' : 'none'; if (v === 'big' && !$('#bigOut').innerHTML) scanBig(); }
     if (seg.id === 'whaleSort') { whaleSort = v; loadWhales(); }
+    if (seg.id === 'whaleKind') { whaleKind = v; renderWhales(); }
   }
 });
 $('#modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
@@ -1372,6 +1698,9 @@ $('#addUsBtn').onclick = addUsSheet;
 $('#dexGo').onclick = scanDex;
 $('#bigGo').onclick = scanBig;
 $('#btRun').onclick = runBacktest;
+$('#newPlanBtn').onclick = () => openPlan({}, null);
+$('#exportWl').onclick = exportWl;
+$('#copyWl').onclick = () => copyText(wlTvList().join(','));
 window.addEventListener('hashchange', () => goTab(location.hash.slice(1)));
 
 /* ================= 啟動 ================= */
@@ -1382,7 +1711,7 @@ if (location.protocol === 'about:' || /claudeusercontent|claude\.ai/.test(locati
   n.innerHTML = '<b style="color:var(--accent)">你正在預覽視窗中開啟</b><br>預覽視窗會擋掉即時數據。請下載這個 HTML 檔，用電腦或手機的瀏覽器（Chrome、Safari、Edge）直接打開。';
   document.querySelector('main').prepend(n);
 }
-let startTab = 'health'; try { startTab = location.hash.slice(1) || 'health'; } catch (e) {}
+let startTab = 'today'; try { startTab = location.hash.slice(1) || 'today'; } catch (e) {}
 goTab(startTab);
 renderAllViews();
 loadAll();
