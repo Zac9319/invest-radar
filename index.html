@@ -1869,7 +1869,7 @@ async function loadAll(force) {
   $('#refreshBtn').textContent = '⟳';
   loadUS();
   if (currentTab === 'whale') loadWhales(force);
-  loadScreener('c', force); loadEarnings(); fillUsFromHL();
+  loadScreener('c', force).then(() => loadScreener('u', force)); loadEarnings(); fillUsFromHL();
 }
 
 /* ================= 事件 ================= */
