@@ -1650,7 +1650,7 @@ async function buildCrypto(note) {
   if (!state.markets) state.markets = await fetchMarkets();
   const seen = new Set(), uni = [];
   const add = (id, sym, name) => { sym = sym.toUpperCase(); if (seen.has(sym)) return; seen.add(sym); uni.push({ id, sym, name }); };
-  state.markets.filter(x => !(Math.abs(x.current_price - 1) < 0.03 && STABLE_RE.test(x.symbol + x.name)) && !WRAP_RE.test(x.id + ' ' + x.name)).slice(0, 40).forEach(x => add(x.id, x.symbol, x.name));
+  state.markets.filter(x => !(Math.abs(x.current_price - 1) < 0.03 && STABLE_RE.test(x.symbol + x.name)) && !(STABLE_RE.test(x.symbol) && Math.abs(x.price_change_percentage_30d_in_currency ?? 0) < 3) && !WRAP_RE.test(x.id + ' ' + x.name)).slice(0, 40).forEach(x => add(x.id, x.symbol, x.name));
   state.wl.crypto.forEach(x => add(x.id, x.sym, x.name));
   note(`掃描 ${uni.length} 檔加密貨幣的日 K 線…`);
   let fund = {};
