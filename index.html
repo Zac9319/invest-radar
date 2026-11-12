@@ -137,17 +137,33 @@ textarea{font:inherit;color:var(--text);background:var(--card2);border:1px solid
 <section class="tab" id="tab-today">
   <div class="card" id="regimeCard"><div class="empty">計算中…</div></div>
   <div class="alerts" id="lockBanner" style="margin-top:10px"></div>
+  <h2>今日機會 <small>篩選器綜合分數前 5 名</small><span class="sp"></span><button class="btn ghost sm" data-tab="scan">完整篩選</button></h2>
+  <div class="card" id="oppList"><div class="empty">掃描中…</div></div>
   <h2>我的部位要處理 <span class="sp"></span><button class="btn ghost sm" data-tab="hold">全部持倉</button></h2>
   <div class="card" id="todoList"><div class="empty">載入中…</div></div>
   <h2>交易計畫 <small>先算好風險再下單</small><span class="sp"></span><button class="btn sm" id="newPlanBtn">＋ 新計畫</button></h2>
   <div class="card" id="riskSum"></div>
   <div id="planList"></div>
+  <h2>交易日誌 <small>平倉後自動統計</small><span class="sp"></span><button class="btn ghost sm" id="csvBtn">匯出 CSV</button></h2>
+  <div id="journal"></div>
   <h2>今日事件 <small>選擇權到期與美國經濟數據</small></h2>
   <div class="card" id="expiryCard"></div>
   <div class="card" id="tvCalendar" style="margin-top:10px;padding:0;overflow:hidden;min-height:420px"><div class="empty">經濟日曆載入中…</div></div>
   <h2>TradingView <small>清單與指標</small></h2>
   <div class="card"><div class="flex" style="flex-wrap:wrap"><button class="btn ghost sm" id="exportWl">下載自選清單 .txt</button><button class="btn ghost sm" id="copyWl">複製清單</button></div>
     <p class="note" style="margin-top:6px">TradingView → 觀察清單 →「匯入清單」選這個檔案。每一檔的詳細頁可以產生 Pine 指標，把關鍵價位畫進 TradingView。</p></div>
+</section>
+
+<!-- 篩選 -->
+<section class="tab" id="tab-scan">
+  <div class="seg" id="scrSeg"><button data-v="c" class="on">加密貨幣</button><button data-v="u">美股</button><button data-v="sec">類股輪動</button></div>
+  <div class="flex" id="scrCtl" style="margin-bottom:10px">
+    <select id="scrSort"><option value="score">依綜合分數</option><option value="rs">依相對強弱</option><option value="vr">依量比</option><option value="atr">依波動 ATR%</option></select>
+    <select id="scrPat"><option value="">全部型態</option><option>突破</option><option>回測支撐</option><option>縮量整理</option><option>超跌反彈</option><option>多頭排列</option></select>
+    <button class="btn ghost sm" id="scrRefresh" title="重新掃描">⟳</button>
+  </div>
+  <div class="card note" id="scrNote"></div>
+  <div class="card" id="scrOut" style="margin-top:10px"><div class="empty">切換到此分頁後開始掃描…</div></div>
 </section>
 
 <!-- 體檢 -->
@@ -243,38 +259,15 @@ textarea{font:inherit;color:var(--text);background:var(--card2);border:1px solid
   <p class="note" style="margin-top:8px">點一下可看 K 線；按「編輯」填入數量與成本，就會計算損益。操作提示依月線 MA20、季線 MA60、5／10 日線與跳空缺口自動判讀。</p>
 </section>
 
-<!-- 回測 -->
-<section class="tab" id="tab-test">
-  <h2>BTC 每週定投回測 <small>CoinMetrics 日線</small></h2>
-  <div class="card">
-    <div class="grid2">
-      <div class="field"><label>每週投入（USD）</label><input id="btAmt" type="number" value="100" min="1"></div>
-      <div class="field"><label>開始日期</label><input id="btStart" type="date" value="2018-02-05"></div>
-      <div class="field"><label>扣款日</label><select id="btDow"><option value="1">每週一</option><option value="3">每週三</option><option value="5">每週五</option><option value="0">每週日</option></select></div>
-      <div class="field"><label>手續費 %</label><input id="btFee" type="number" value="0.1" step="0.05" min="0"></div>
-    </div>
-    <label class="chk" style="margin-bottom:10px"><input type="checkbox" id="btSell" checked> 溫度策略在過熱時減碼（溫度 ≥ 80 時每週賣出 8% 持幣）</label>
-    <button class="btn" id="btRun" style="width:100%">開始回測</button>
-    <div id="btOut" style="margin-top:12px"></div>
-  </div>
-  <h2>策略規則</h2>
-  <div class="card note">
-    <p><b style="color:var(--text)">① 固定定投</b>：每週固定金額。</p>
-    <p style="margin-top:6px"><b style="color:var(--text)">② AHR999 加權</b>：&lt;0.45 投 2 倍、0.45–1.2 投 1 倍、&gt;1.2 暫停。</p>
-    <p style="margin-top:6px"><b style="color:var(--text)">③ 週期溫度</b>：溫度 &lt;20 投 3 倍、&lt;35 投 2 倍、&lt;50 投 1.25 倍、&lt;65 投 0.75 倍、&lt;80 投 0.25 倍、≥80 暫停（可選擇減碼）。</p>
-    <p style="margin-top:6px"><b style="color:var(--text)">④ 溫度＋動能</b>：在 ③ 的倍數上，資金動能 &gt; +20 再乘 1.3，&lt; −20 乘 0.7。</p>
-    <p style="margin-top:6px">歷史溫度只用得到 MVRV、AHR999、恐懼貪婪（資金費率與山寨季沒有長歷史）；歷史動能用價格 vs 200 日均線、穩定幣 30 日變化、交易所 30 日淨流量。回測只看過去，不代表未來，也不是投資建議。</p>
-  </div>
-</section>
 </main>
 
 <nav><div class="in">
   <button data-tab="today" class="on"><i>⚑</i>作戰</button>
+  <button data-tab="scan"><i>⌕</i>篩選</button>
   <button data-tab="health"><i>◉</i>體檢</button>
   <button data-tab="whale"><i>🐋</i>巨鯨</button>
   <button data-tab="market"><i>₿</i>市場</button>
   <button data-tab="hold"><i>▤</i>持倉<span class="dot" id="todoDot" style="display:none"></span></button>
-  <button data-tab="test"><i>⚗</i>回測</button>
 </div></nav>
 
 <div class="modal" id="modal"><div class="sheet" id="sheet"></div></div>
@@ -431,10 +424,10 @@ async function fetchDvol(cur) {
   const j = await getJSON(`https://www.deribit.com/api/v2/public/get_volatility_index_data?currency=${cur}&resolution=86400&start_timestamp=${now - 120 * 864e5}&end_timestamp=${now}`, 30 * 60e3);
   return j.result.data.map(d => ({ t: d[0] / 1000, c: d[4] }));
 }
-async function bybitKlines(sym) {
+async function bybitKlines(sym, limit = 1000) {
   for (const cat of ['spot', 'linear']) {
     try {
-      const r = await by('kline?category=' + cat + '&symbol=' + sym + 'USDT&interval=D&limit=1000', 30 * 60e3);
+      const r = await by('kline?category=' + cat + '&symbol=' + sym + 'USDT&interval=D&limit=' + limit, 30 * 60e3);
       if (r.list && r.list.length >= 30) return r.list.map(k => ({ t: Math.floor(+k[0] / 1000), o: +k[1], h: +k[2], l: +k[3], c: +k[4], v: +k[5] })).reverse();
     } catch (e) {}
   }
@@ -875,6 +868,7 @@ async function loadWhales(force) {
       w.pos = st.assetPositions.map(p => p.position).map(p => ({ coin: p.coin, szi: +p.szi, val: +p.positionValue, entry: +p.entryPx, upnl: +p.unrealizedPnl, lev: p.leverage?.value, liq: p.liquidationPx ? +p.liquidationPx : null })).filter(p => p.szi !== 0);
     });
     aggregatePositions(W);
+    try { const [a, b] = await Promise.all([hlCtx(), hlCtx('xyz')]); W.px = { ...a, ...b }; state.hlx = b; } catch (e) {}
     renderWhales();
     $('#whaleFlow').innerHTML = '<div class="empty"><span class="spin">⟳</span> 讀取巨鯨 24 小時成交…</div>';
     const since = Date.now() - 864e5;
@@ -928,6 +922,7 @@ function renderWhales() {
     const mx = Math.max(1, ...top.map(f => Math.max(f.buy, f.sell)));
     $('#whaleFlow').innerHTML = top.length ? `<div class="note" style="margin-bottom:4px">買方＝開多＋平空；賣方＝開空＋平多。依淨額排序。</div>` + top.map(f => `<div class="row" data-whalecoin="${esc(f.coin)}" style="display:block">
       <div class="flex"><b style="flex:1">${coinName(f.coin)} <span class="act ${f.net > 0 ? 'up' : 'down'}">淨${f.net > 0 ? '買' : '賣'} ${fmt.big(Math.abs(f.net))}</span></b><span class="note">${f.nb} 鯨買／${f.ns} 鯨賣</span></div>
+      <div class="tags">${divergence(f)}</div>
       <div class="bar2"><i style="width:${f.buy / mx * 50}%;margin-left:${50 - f.buy / mx * 50}%;background:var(--up)"></i><i style="width:${f.sell / mx * 50}%;background:var(--down)"></i></div>
       <div class="note" style="display:flex;justify-content:space-between"><span>買 ${fmt.big(f.buy)}（開多 ${fmt.big(f.ol)}、平空 ${fmt.big(f.cs)}）</span><span>賣 ${fmt.big(f.sell)}</span></div></div>`).join('')
       : '<div class="empty">過去 24 小時巨鯨沒有明顯成交</div>';
@@ -964,7 +959,7 @@ function openWhaleCoin(coin) {
   holders.sort((a, b) => b.p.val - a.p.val);
   const acts = (W.feed || []).filter(e => e.coin === coin);
   openSheet(`<div class="flex" style="justify-content:space-between"><div style="font-size:18px;font-weight:800">🐋 ${coinName(coin)} ${tvBtn(coin.includes(':') ? 'u' : 'c', coin)}</div><button class="btn ghost sm" data-close>✕</button></div>
-    <h2>哪些巨鯨持有</h2><div class="card">${holders.map(({ w, p }) => `<div class="row" data-whale="${esc(w.a)}"><div class="nm"><b>${whaleTag(w)} <span class="act ${p.szi > 0 ? 'up' : 'down'}">${p.szi > 0 ? '多' : '空'} ${p.lev || ''}x</span></b><span>開倉 ${fmt.price(p.entry)}${p.liq ? ' · 強平 ' + fmt.price(p.liq) : ''}</span></div><div class="px num"><div>${fmt.big(p.val)}</div><div class="${cls(p.upnl)}">${fmt.sbig(p.upnl)}</div></div></div>`).join('') || '<div class="empty">名單內沒有人持有</div>'}</div>
+    ${priceMap(coin)}<h2>哪些巨鯨持有</h2><div class="card">${holders.map(({ w, p }) => `<div class="row" data-whale="${esc(w.a)}"><div class="nm"><b>${whaleTag(w)} <span class="act ${p.szi > 0 ? 'up' : 'down'}">${p.szi > 0 ? '多' : '空'} ${p.lev || ''}x</span></b><span>開倉 ${fmt.price(p.entry)}${p.liq ? ' · 強平 ' + fmt.price(p.liq) : ''}</span></div><div class="px num"><div>${fmt.big(p.val)}</div><div class="${cls(p.upnl)}">${fmt.sbig(p.upnl)}</div></div></div>`).join('') || '<div class="empty">名單內沒有人持有</div>'}</div>
     <h2>24h 動作</h2><div class="card feed">${acts.map(e => `<div class="it"><div class="t">${fmt.ago(e.t)} · ${whaleTag(e.w)}</div><b>${esc(e.dir)}</b> ${fmt.big(e.usd)} <span class="mute">均價 ${fmt.price(e.px)}</span></div>`).join('') || '<div class="empty">沒有 ≥ $10 萬的動作</div>'}</div>`);
 }
 
@@ -1226,6 +1221,7 @@ async function openDetail(kind, key) {
       if (mk) sub += ` · 市值 ${fmt.big(mk.market_cap)} · #${mk.market_cap_rank}`;
     } else {
       bars = state.usBars[key];
+      if (!bars) { const set = await hlStockSet().catch(() => ({})); if (set['xyz:' + key]) bars = state.usBars[key] = await hlCandles('xyz:' + key); }
       if (!bars) { const r = await tdFetch([key]); bars = state.usBars[key] = r[key]; }
       title = key; hk = 'u:' + key;
     }
@@ -1280,56 +1276,6 @@ function applyDisplay() {
   r.classList.toggle('intl', state.set.color === 'intl'); r.classList.toggle('light', state.set.theme === 'light');
   r.style.setProperty('--fs', state.set.fs);
   document.querySelector('meta[name=theme-color]').content = state.set.theme === 'light' ? '#f3f5f9' : '#0b0f17';
-}
-
-/* ================= 回測 ================= */
-function runBacktest() {
-  const out = $('#btOut');
-  if (!state.hist) { out.innerHTML = '<div class="err">歷史資料還沒載入完成，請稍候再按。</div>'; return; }
-  const amt = +$('#btAmt').value || 100, dow = +$('#btDow').value, fee = (+$('#btFee').value || 0) / 100, sellHot = $('#btSell').checked;
-  const start = Math.floor(Date.parse($('#btStart').value + 'T00:00:00Z') / 1000) || state.hist[0].t;
-  const tm = t => t == null ? 1 : t < 20 ? 3 : t < 35 ? 2 : t < 50 ? 1.25 : t < 65 ? 0.75 : t < 80 ? 0.25 : 0;
-  const S = {
-    dca: { name: '固定定投', color: '#8a97ab', mult: () => 1 },
-    ahr: { name: 'AHR999 加權', color: '#4f8cff', mult: h => h.ahr == null ? 1 : h.ahr < 0.45 ? 2 : h.ahr < 1.2 ? 1 : 0 },
-    temp: { name: '週期溫度', color: '#f5b942', mult: h => tm(h.temp), sell: true },
-    tm: { name: '溫度＋動能', color: '#f472b6', mult: h => tm(h.temp) * (h.mom == null ? 1 : h.mom > 20 ? 1.3 : h.mom < -20 ? 0.7 : 1), sell: true }
-  };
-  const days = state.hist.filter(h => h.t >= start);
-  if (days.length < 30) { out.innerHTML = '<div class="err">開始日期太晚，資料不足。</div>'; return; }
-  const res = {};
-  for (const [k, s] of Object.entries(S)) {
-    let inv = 0, coin = 0, cash = 0, buys = 0, worst = 0, peak = 0, mdd = 0; const curve = [];
-    for (const h of days) {
-      if (new Date(h.t * 1000).getUTCDay() === dow) {
-        const m = s.mult(h);
-        if (m > 0) { const usd = amt * m; inv += usd; coin += usd * (1 - fee) / h.c; buys++; }
-        if (sellHot && s.sell && h.temp != null && h.temp >= 80 && coin > 0) { const q = coin * 0.08; coin -= q; cash += q * h.c * (1 - fee); }
-      }
-      const val = coin * h.c + cash;
-      if (inv > 0) {
-        const roi = (val / inv - 1) * 100; worst = Math.min(worst, roi);
-        peak = Math.max(peak, val); if (peak > 0) mdd = Math.min(mdd, (val / peak - 1) * 100);
-        curve.push({ time: h.t, value: +roi.toFixed(2) });
-      }
-    }
-    const lastP = days[days.length - 1].c, val = coin * lastP + cash;
-    res[k] = { ...s, inv, val, cash, roi: inv ? (val / inv - 1) * 100 : 0, mult: inv ? val / inv : 0, avg: coin ? (inv - cash) / coin : 0, buys, worst, mdd, curve };
-  }
-  out.innerHTML = `<div class="note">期間 ${fmt.date(days[0].t)} – ${fmt.date(days[days.length - 1].t)}</div>
-    <table style="margin-top:6px"><thead><tr><th>策略</th><th>投入 → 最終</th><th>倍數</th><th>最大回撤</th></tr></thead><tbody>
-    ${Object.values(res).map(x => `<tr><td style="white-space:nowrap"><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${x.color};margin-right:4px"></i>${x.name}<div class="mute" style="font-size:11px">買 ${x.buys} 次${x.cash ? ' · 已減碼 ' + fmt.big(x.cash) : ''}</div></td>
-      <td class="num">${fmt.big(x.inv)}<div class="mute" style="font-size:11px">→ ${fmt.big(x.val)}</div></td><td class="num ${cls(x.roi)}"><b>${x.mult.toFixed(2)}×</b><div style="font-size:11px">${fmt.pct(x.roi, 0)}</div></td><td class="num down">${x.mdd.toFixed(0)}%</td></tr>`).join('')}
-    </tbody></table>
-    <div class="legend" style="margin-top:10px">${Object.values(res).map(x => `<span><i style="background:${x.color}"></i>${x.name}</span>`).join('')}</div>
-    <div class="chart" id="btChart" style="height:260px"></div><div class="note">圖表：各策略累計報酬率（%）。倍數＝最終資產（持幣市值＋減碼現金）÷ 總投入。最大回撤＝資產從高點最多跌掉幾成。</div>`;
-  if (!window.LightweightCharts) return;
-  const el = $('#btChart'), th = chartTheme();
-  if (window._btChart) { try { window._btChart.remove(); } catch (e) {} }
-  const ch = LightweightCharts.createChart(el, { autoSize: true, layout: { background: { color: 'transparent' }, textColor: th.text }, grid: { vertLines: { color: th.line }, horzLines: { color: th.line } }, rightPriceScale: { borderColor: th.line }, timeScale: { borderColor: th.line } });
-  window._btChart = ch;
-  Object.values(res).forEach(x => ch.addLineSeries({ color: x.color, lineWidth: 2, priceLineVisible: false }).setData(x.curve));
-  ch.timeScale().fitContent();
 }
 
 /* ================= 作戰首頁 ================= */
@@ -1475,7 +1421,7 @@ function lockState() { const lim = state.risk.acct * state.risk.dayPct / 100, pn
 function openPlan(pre = {}, bars) {
   const last = bars && bars.length ? bars[bars.length - 1].c : null, a = atr(bars);
   const P = v => v == null ? '' : +(+v).toPrecision(6);
-  const p = Object.assign({ kind: 'c', sym: '', dir: 'long', entry: P(last), stop: last && a ? P(last - 1.5 * a) : '', target: last && a ? P(last + 3 * a) : '', lev: 1, reason: '', exit: '' }, pre);
+  const p = Object.assign({ kind: 'c', sym: '', dir: 'long', entry: P(last), stop: last && a ? P(last - 1.5 * a) : '', target: last && a ? P(last + 3 * a) : '', lev: 1, reason: '', exit: '', setup: '其他' }, pre);
   openSheet(`<div class="flex" style="justify-content:space-between"><b style="font-size:18px">交易計畫</b><button class="btn ghost sm" data-close>✕</button></div>
     ${lockState().locked ? '<div class="alerts" style="margin-top:10px"><div class="al"><b class="down">⛔ 停手</b><span>今天已達每日最大虧損，建議不要再開新倉。</span></div></div>' : ''}
     <div class="grid2" style="margin-top:12px">
@@ -1483,6 +1429,7 @@ function openPlan(pre = {}, bars) {
       <div class="field"><label>市場</label><select id="pKind"><option value="c">加密貨幣</option><option value="u" ${p.kind === 'u' ? 'selected' : ''}>美股</option></select></div>
       <div class="field"><label>方向</label><select id="pDir"><option value="long">做多</option><option value="short">做空</option></select></div>
       <div class="field"><label>槓桿（現貨填 1）</label><input id="pLev" type="number" min="1" step="1" value="${p.lev}"></div>
+      <div class="field" style="grid-column:1/-1"><label>型態（日誌會依型態統計）</label><select id="pSetup">${SETUPS.map(x => `<option ${x === p.setup ? 'selected' : ''}>${x}</option>`).join('')}</select></div>
       <div class="field"><label>進場價</label><input id="pEntry" type="number" step="any" value="${p.entry}"></div>
       <div class="field"><label>停損價</label><input id="pStop" type="number" step="any" value="${p.stop}"></div>
       <div class="field"><label>目標價</label><input id="pTarget" type="number" step="any" value="${p.target}"></div>
@@ -1494,7 +1441,7 @@ function openPlan(pre = {}, bars) {
     <div class="field"><label>出場條件</label><textarea id="pExit" placeholder="例如：收盤跌破季線全出；到目標價先出一半">${esc(p.exit)}</textarea></div>
     <button class="btn" id="pSave" style="width:100%">儲存計畫</button>`);
   if (p.dir === 'short') $('#pDir').value = 'short';
-  const read = () => ({ kind: $('#pKind').value, sym: $('#pSym').value.trim().toUpperCase(), dir: $('#pDir').value, lev: Math.max(1, +$('#pLev').value || 1), entry: +$('#pEntry').value, stop: +$('#pStop').value, target: +$('#pTarget').value || null, reason: $('#pReason').value.trim(), exit: $('#pExit').value.trim() });
+  const read = () => ({ kind: $('#pKind').value, sym: $('#pSym').value.trim().toUpperCase(), dir: $('#pDir').value, lev: Math.max(1, +$('#pLev').value || 1), entry: +$('#pEntry').value, stop: +$('#pStop').value, target: +$('#pTarget').value || null, reason: $('#pReason').value.trim(), exit: $('#pExit').value.trim(), setup: $('#pSetup').value });
   const upd = () => {
     state.risk.acct = +$('#pAcct').value || state.risk.acct; state.risk.riskPct = +$('#pRisk').value || state.risk.riskPct; saveRisk();
     const q = read(), o = calcPlan(q);
@@ -1532,7 +1479,7 @@ function planAction(act, pid) {
 }
 const PST = { plan: ['計畫中', 'flat'], open: ['已進場', 'warn'], closed: ['已平倉', 'flat'] };
 function planCard(p) {
-  return `<div class="card" style="margin-top:8px"><div class="flex"><b style="flex:1">${esc(p.sym)} <span class="act ${p.dir === 'long' ? 'up' : 'down'}">${p.dir === 'long' ? '做多' : '做空'}${p.lev > 1 ? ' ' + p.lev + 'x' : ''}</span> <span class="act ${PST[p.status][1]}">${PST[p.status][0]}</span></b>${tvBtn(p.kind, p.sym)}</div>
+  return `<div class="card" style="margin-top:8px"><div class="flex"><b style="flex:1">${esc(p.sym)} <span class="act ${p.dir === 'long' ? 'up' : 'down'}">${p.dir === 'long' ? '做多' : '做空'}${p.lev > 1 ? ' ' + p.lev + 'x' : ''}</span>${p.setup ? ` <span class="tag">${esc(p.setup)}</span>` : ''} <span class="act ${PST[p.status][1]}">${PST[p.status][0]}</span></b>${tvBtn(p.kind, p.sym)}</div>
     <div class="meta" style="margin-top:6px;grid-template-columns:1fr auto 1fr auto"><span>進場</span><b>${fmt.price(p.entry)}</b><span>停損</span><b>${fmt.price(p.stop)}</b>
       <span>目標</span><b>${p.target ? fmt.price(p.target) : '—'}</b><span>數量</span><b>${qtyFmt(p.qty, p.kind)}</b>
       <span>最多虧損</span><b>${fmt.big(p.riskAmt)}</b><span>報酬比</span><b>${p.rr ? '1 : ' + p.rr.toFixed(1) : '—'}</b>
@@ -1557,10 +1504,17 @@ function renderToday() {
   $('#todoList').innerHTML = T.length ? T.map(x => `<div class="row" ${x.kind === 'coin' ? `data-coin="${esc(x.key)}"` : `data-us="${esc(x.key)}"`}><div class="nm"><b>${esc(x.name)} ${x.s.fresh ? `<span class="act ${x.s.fresh.c}">${x.s.fresh.t}</span>` : ''}</b>${advHtml(x.s)}</div>
       <div class="px num"><div>${fmt.price(x.s.last)}</div>${x.pl && x.pl.pnl != null ? `<div class="pl ${cls(x.pl.pnl)}">${fmt.sbig(x.pl.pnl)}</div>` : ''}</div></div>`).join('')
     : '<div class="empty">目前沒有需要處理的部位</div>';
+  const O = topOpps();
+  $('#oppList').innerHTML = O.length ? (R && R.lvl === 'def' ? '<div class="note" style="padding:4px 2px">⚠ 目前是防守環境，以下僅供觀察。</div>' : '') + O.map(r => `<div class="row" ${r.kind === 'c' ? `data-coin="${esc(r.id)}"` : `data-us="${esc(r.id)}"`}><div class="nm"><b>${esc(r.sym)} <span class="tag">${r.kind === 'c' ? '加密' : '美股'}</span> <span class="act ${r.score >= 60 ? 'up' : 'warn'}">${r.score} 分</span></b>
+      <div class="tags">${r.m.pats.map(p => `<span class="tag up">${p}</span>`).join('')}${r.warn.map(w => `<span class="tag down">${w}</span>`).join('')}</div>
+      <span>支撐 ${r.m.sup ? r.m.sup[0] + ' ' + fmt.price(r.m.sup[1]) : '—'} · 壓力 ${r.m.res ? r.m.res[0] + ' ' + fmt.price(r.m.res[1]) : '—'}</span></div>
+      <div class="px num"><div>${fmt.price(r.m.last)}</div><div class="${cls(r.m.chg1)}">${fmt.pct(r.m.chg1)}</div><div class="flex" style="justify-content:flex-end;gap:4px;margin-top:4px">${tvBtn(r.kind, r.sym)}<button class="btn ghost sm" data-opp="${r.kind}:${esc(r.id)}">計畫</button></div></div></div>`).join('')
+    : `<div class="empty">${scrBusy.c || scrBusy.u ? '<span class="spin">⟳</span> 掃描中…' : '尚未掃描，到「篩選」分頁開始'}</div>`;
+  renderJournal();
   $('#expiryCard').innerHTML = expiries().map(e => {
     const days = Math.ceil((e.t - Date.now()) / 864e5);
     return `<div class="ev"><div class="d">${(e.utc ? e.t.getUTCMonth() : e.t.getMonth()) + 1}/${e.utc ? e.t.getUTCDate() : e.t.getDate()}<small>週${'日一二三四五六'[e.utc ? e.t.getUTCDay() : e.t.getDay()]} · ${days <= 0 ? '今天' : days + ' 天後'}</small></div><div><b>${e.name}</b><div class="note">${e.note} · ${e.time}</div></div></div>`;
-  }).join('') + '<p class="note" style="margin-top:6px">到期前後常出現劇烈波動。下方是美國經濟數據日曆（CPI、FOMC、非農等）。</p>';
+  }).join('') + earnRows() + '<p class="note" style="margin-top:6px">' + (state.set.tdKey ? '' : '加上 Twelve Data key 後，會顯示自選美股的財報日。') + '到期前後常出現劇烈波動。下方是美國經濟數據日曆（CPI、FOMC、非農等）。</p>';
   const ae = document.activeElement;
   if (ae && $('#tab-today').contains(ae) && /INPUT|TEXTAREA/.test(ae.tagName)) return; // 使用者正在輸入，不重畫
   const open = state.plans.filter(p => p.status === 'open'), openRisk = open.reduce((s, p) => s + (p.riskAmt || 0), 0);
@@ -1606,6 +1560,272 @@ ${lv.join('\n')}
 }
 const passKindFor = (kind, c) => (kind === 'u') === String(c).includes(':');
 
+/* ================= 篩選器 ================= */
+const US_POOL = ['NVDA', 'AAPL', 'MSFT', 'AMZN', 'META', 'GOOGL', 'TSLA', 'AVGO', 'AMD', 'MU', 'ORCL', 'PLTR', 'COIN', 'MSTR', 'HOOD', 'NFLX', 'CRWD', 'NET', 'ARM', 'TSM', 'AMAT', 'QCOM', 'MRVL', 'LLY', 'COST', 'RDDT', 'RKLB', 'IREN', 'CRWV', 'NBIS'];
+const SECTOR_TD = [['XLK', '科技'], ['XLF', '金融'], ['XLV', '醫療'], ['XLY', '非必需消費'], ['XLP', '必需消費'], ['XLE', '能源'], ['XLI', '工業'], ['XLB', '原物料'], ['XLU', '公用事業'], ['XLRE', '房地產'], ['XLC', '通訊']];
+const SECTOR_HL = [['SMH', '半導體'], ['MAGS', '七巨頭'], ['XLE', '能源'], ['XBI', '生技'], ['TLT', '美國長債'], ['GOLD', '黃金'], ['CL', '原油'], ['COPPER', '銅']];
+const SETUPS = ['突破', '回測支撐', '縮量整理', '超跌反彈', '趨勢延續', '其他'];
+let scrView = 'c', scrBusy = {};
+state.scr = {}; state.earn = store.get('earn', {});
+
+async function hlCandles(coin, days = 300) {
+  const k = 'c_hlc_' + coin, c = store.get(k);
+  if (c && Date.now() - c.t < 30 * 60e3) return c.d;
+  const r = await hl({ type: 'candleSnapshot', req: { coin, interval: '1d', startTime: Date.now() - days * 864e5, endTime: Date.now() } });
+  const d = (Array.isArray(r) ? r : []).map(x => ({ t: Math.floor(x.t / 1000), o: +x.o, h: +x.h, l: +x.l, c: +x.c, v: +x.v }));
+  store.set(k, { t: Date.now(), d });
+  return d;
+}
+async function hlCtx(dex) { // 各合約的現價、24h 漲跌、資金費率
+  const j = await getJSON(HL, 5 * 60e3, false, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(dex ? { type: 'metaAndAssetCtxs', dex } : { type: 'metaAndAssetCtxs' }) });
+  const out = {};
+  j[0].universe.forEach((u, i) => { const c = j[1][i]; if (!c || u.isDelisted) return; const px = +c.markPx, pv = +c.prevDayPx; out[u.name] = { px, chg: pv ? (px / pv - 1) * 100 : null, fund: +c.funding * 100 }; });
+  return out;
+}
+async function hlStockSet() { if (!state.hlx) state.hlx = await hlCtx('xyz'); return state.hlx; }
+
+// 指標
+function scrMetrics(bars, benchChg30) {
+  if (!bars || bars.length < 60) return null;
+  const n = bars.length, c = bars.map(b => b.c), last = c[n - 1];
+  const chg = k => n > k ? (last / c[n - 1 - k] - 1) * 100 : null;
+  const m20 = sma(c, 20)[n - 1], m60 = sma(c, 60)[n - 1], m200 = n >= 200 ? sma(c, 200)[n - 1] : null;
+  const a = atr(bars), atrPct = a ? a / last * 100 : null;
+  const vols = bars.map(b => b.v || 0), avgV = (from, to) => { const s = vols.slice(from, to); return s.length ? s.reduce((x, y) => x + y, 0) / s.length : 0; };
+  const v20 = avgV(n - 21, n - 1);
+  const elapsed = clamp((Date.now() / 1000 - bars[n - 1].t) / DAY, 0, 1);
+  const vr = v20 ? (elapsed >= 0.1 ? vols[n - 1] / elapsed / v20 : vols[n - 2] / avgV(n - 22, n - 2)) : null;
+  // 關鍵價位
+  let wk = null; for (let i = n - 1; i >= Math.max(0, n - 7); i--) if (new Date(bars[i].t * 1000).getUTCDay() === 1) { wk = bars[i].o; break; }
+  const lv = [['前日高', bars[n - 2].h], ['前日低', bars[n - 2].l], ['週開盤', wk], ['MA20', m20], ['MA60', m60], ['MA200', m200]].filter(x => x[1]);
+  const sup = lv.filter(x => x[1] < last).sort((x, y) => y[1] - x[1])[0], res = lv.filter(x => x[1] > last).sort((x, y) => x[1] - y[1])[0];
+  // 型態
+  const pats = [];
+  const hi20 = Math.max(...bars.slice(n - 21, n - 1).map(b => b.h));
+  if (last > hi20 && (vr ?? 0) >= 1.3) pats.push('突破');
+  if (m20 > m60 && last >= m20 && last / m20 - 1 < 0.03 && Math.min(...bars.slice(n - 3).map(b => b.l)) <= m20 * 1.01) pats.push('回測支撐');
+  const r10 = (Math.max(...bars.slice(n - 10).map(b => b.h)) - Math.min(...bars.slice(n - 10).map(b => b.l))) / last * 100;
+  if (atrPct && r10 < 2.5 * atrPct && avgV(n - 6, n - 1) < 0.8 * v20) pats.push('縮量整理');
+  const rsiY = rsi(c.slice(0, -1)), rsiN = rsi(c);
+  if (rsiY != null && rsiY <= 32 && last > c[n - 2]) pats.push('超跌反彈');
+  const trend = m200 && last > m20 && m20 > m60 && m60 > m200;
+  if (trend) pats.push('多頭排列');
+  const c30 = chg(30);
+  return { last, chg1: chg(1), c7: chg(7), c30, rs: c30 != null && benchChg30 != null ? c30 - benchChg30 : null, atrPct, vr, m20, m60, m200, rsi: rsiN, sup, res, pats, trend, ext: m20 && atrPct ? (last / m20 - 1) * 100 / atrPct : 0 };
+}
+function scoreRows(rows) {
+  const ok = rows.filter(r => r.m && r.m.rs != null).sort((a, b) => a.m.rs - b.m.rs);
+  ok.forEach((r, i) => r.rsRank = ok.length > 1 ? i / (ok.length - 1) : 0.5);
+  const bonus = { '突破': 20, '回測支撐': 15, '縮量整理': 10, '超跌反彈': 5 };
+  rows.forEach(r => {
+    if (!r.m) { r.score = -1; return; }
+    const m = r.m; let s = (r.rsRank ?? 0.5) * 40;
+    s += Math.max(0, ...m.pats.map(p => bonus[p] || 0));
+    s += clamp(((m.vr ?? 1) - 1) / 1.5) * 15;
+    if (m.m200 && m.last > m.m200) s += 10;
+    if (r.whale > 0) s += 10;
+    if (m.ext > 3) s -= 15;
+    if (r.fund != null && r.fund > 0.05) s -= 5;
+    r.score = Math.round(clamp(s, 0, 100));
+    r.warn = [m.ext > 3 ? '離月線太遠，追高風險' : '', r.fund != null && r.fund > 0.05 ? '資金費率偏高' : ''].filter(Boolean);
+  });
+  return rows;
+}
+
+async function loadScreener(view, force) {
+  if (scrBusy[view]) return;
+  const cur = state.scr[view];
+  if (!force && cur && Date.now() - cur.t < 15 * 60e3) { renderScreener(); return; }
+  scrBusy[view] = true;
+  const note = msg => { if (scrView === view && currentTab === 'scan') $('#scrOut').innerHTML = `<div class="empty"><span class="spin">⟳</span> ${msg}</div>`; };
+  try {
+    if (view === 'c') await buildCrypto(note);
+    else if (view === 'u') await buildUS(note);
+    else await buildSectors(note);
+  } catch (e) { state.scr[view] = { t: Date.now(), rows: [], err: e.message }; }
+  scrBusy[view] = false;
+  renderScreener(); renderToday();
+}
+async function buildCrypto(note) {
+  if (!state.markets) state.markets = await fetchMarkets();
+  const seen = new Set(), uni = [];
+  const add = (id, sym, name) => { sym = sym.toUpperCase(); if (seen.has(sym)) return; seen.add(sym); uni.push({ id, sym, name }); };
+  state.markets.filter(x => !(Math.abs(x.current_price - 1) < 0.03 && STABLE_RE.test(x.symbol + x.name)) && !WRAP_RE.test(x.id + ' ' + x.name)).slice(0, 40).forEach(x => add(x.id, x.symbol, x.name));
+  state.wl.crypto.forEach(x => add(x.id, x.sym, x.name));
+  note(`掃描 ${uni.length} 檔加密貨幣的日 K 線…`);
+  let fund = {};
+  try { const r = await by('tickers?category=linear', 5 * 60e3); r.list.forEach(t => fund[t.symbol] = +t.fundingRate * 100); } catch (e) {}
+  const bars = await pool(uni, 4, it => bybitKlines(it.sym, 300));
+  const bi = uni.findIndex(x => x.sym === 'BTC'), bb = bars[bi];
+  const b30 = bb && bb.length > 31 ? (bb[bb.length - 1].c / bb[bb.length - 31].c - 1) * 100 : null;
+  const rows = uni.map((it, i) => {
+    const wf = state.whale?.flow?.find(f => f.coin === it.sym);
+    return { kind: 'c', id: it.id, sym: it.sym, name: it.name, bars: bars[i], m: scrMetrics(bars[i], b30), fund: fund[it.sym + 'USDT'] ?? null, whale: wf ? wf.net : null };
+  });
+  state.scr.c = { t: Date.now(), rows: scoreRows(rows), bench: 'BTC' };
+}
+async function buildUS(note) {
+  note('讀取 Hyperliquid 美股合約清單…');
+  const set = await hlStockSet();
+  const syms = [...new Set([...state.wl.us, ...US_POOL])].filter(s => set['xyz:' + s]);
+  note(`掃描 ${syms.length} 檔美股的日 K 線…`);
+  const sp = await hlCandles('xyz:SP500').catch(() => null);
+  const b30 = sp && sp.length > 31 ? (sp[sp.length - 1].c / sp[sp.length - 31].c - 1) * 100 : null;
+  const bars = await pool(syms, 3, s => hlCandles('xyz:' + s));
+  const rows = syms.map((s, i) => {
+    const wf = state.whale?.flow?.find(f => f.coin === 'xyz:' + s);
+    if (bars[i] && bars[i].length && !state.usBars[s]) state.usBars[s] = bars[i];
+    return { kind: 'u', id: s, sym: s, name: s, bars: bars[i], m: scrMetrics(bars[i], b30), fund: null, whale: wf ? wf.net : null, earn: nextEarning(s) };
+  });
+  state.scr.u = { t: Date.now(), rows: scoreRows(rows), bench: 'S&P 500' };
+}
+async function buildSectors(note) {
+  let list, src, bench;
+  if (state.set.tdKey) {
+    note('讀取 11 個類股 ETF（Twelve Data 每分鐘 8 檔，第一次約需 1–2 分鐘）…');
+    const r = await tdFetch([...SECTOR_TD.map(x => x[0]), 'SPY'], msg => note(msg));
+    Object.assign(state.usBars, r);
+    list = SECTOR_TD.map(([s, n]) => ({ s, n, bars: r[s] })); bench = r.SPY; src = 'Twelve Data，基準 SPY';
+  } else {
+    note('讀取類股代表合約…');
+    await hlStockSet();
+    const bars = await pool(SECTOR_HL, 3, ([s]) => hlCandles('xyz:' + s));
+    list = SECTOR_HL.map(([s, n], i) => ({ s, n, bars: bars[i] })); bench = await hlCandles('xyz:SP500').catch(() => null); src = 'Hyperliquid 合約，基準 S&P 500（加上 Twelve Data key 後改為 11 個標準類股 ETF）';
+  }
+  const bc = k => bench && bench.length > k ? (bench[bench.length - 1].c / bench[bench.length - 1 - k].c - 1) * 100 : null;
+  const rows = list.map(x => {
+    const b = x.bars; if (!b || b.length < 60) return { ...x, ok: false };
+    const c = b.map(z => z.c), n = c.length, last = c[n - 1], ch = k => (last / c[n - 1 - k] - 1) * 100, m50 = sma(c, 50)[n - 1];
+    return { ...x, ok: true, last, c5: ch(5), c20: ch(20), rs20: ch(20) - (bc(20) ?? 0), rs5: ch(5) - (bc(5) ?? 0), above: last > m50 };
+  });
+  state.scr.sec = { t: Date.now(), rows, src };
+}
+
+function renderScreener() {
+  const out = $('#scrOut'); if (!out) return;
+  $('#scrCtl').style.display = scrView === 'sec' ? 'none' : '';
+  const S = state.scr[scrView];
+  if (!S) { out.innerHTML = '<div class="empty">載入中…</div>'; return; }
+  if (S.err) { out.innerHTML = `<div class="err">讀取失敗：${esc(S.err)}</div>`; return; }
+  if (scrView === 'sec') {
+    const vix = lastClose('VIX');
+    $('#scrNote').innerHTML = `${vix != null ? `VIX <b style="color:var(--text)">${vix.toFixed(1)}</b>（${vix >= 25 ? '恐慌' : vix < 18 ? '平穩' : '正常'}）· ` : ''}資料：${esc(S.src)}。相對強弱＝類股漲幅 − 大盤漲幅，越高代表資金越往這裡流。`;
+    const R = S.rows.filter(r => r.ok).sort((a, b) => b.rs20 - a.rs20), mx = Math.max(1, ...R.map(r => Math.abs(r.rs20)));
+    out.innerHTML = R.length ? `<table><thead><tr><th>類股</th><th>20 日相對強弱</th><th>5 日</th><th>50 日線</th></tr></thead><tbody>${R.map(r => `<tr><td><b>${esc(r.n)}</b> <span class="mute" style="font-size:11px">${esc(r.s)}</span>
+        <div class="bar2" style="width:110px"><i style="width:${Math.abs(r.rs20) / mx * 50}%;margin-left:${r.rs20 < 0 ? 50 - Math.abs(r.rs20) / mx * 50 : 50}%;background:${r.rs20 >= 0 ? 'var(--up)' : 'var(--down)'}"></i></div></td>
+        <td class="num ${cls(r.rs20)}"><b>${fmt.pct(r.rs20, 1)}</b></td><td class="num ${cls(r.rs5)}">${fmt.pct(r.rs5, 1)}</td><td>${r.above ? '<span class="tag up">之上</span>' : '<span class="tag down">之下</span>'}</td></tr>`).join('')}</tbody></table>`
+      : '<div class="empty">沒有資料</div>';
+    return;
+  }
+  const sort = $('#scrSort').value, pat = $('#scrPat').value;
+  $('#scrNote').innerHTML = `${S.rows.length} 檔，相對強弱以 ${esc(S.bench)} 為基準。分數綜合相對強弱、型態、量比、是否站上年線、巨鯨買賣，只評估做多機會。${scrView === 'u' ? '美股數據來自 Hyperliquid 美股合約（24 小時交易），均線與量能和交易所略有差異。' : ''}量比依今日已過時間推算全日量。`;
+  const key = { score: r => r.score, rs: r => r.m?.rs ?? -999, vr: r => r.m?.vr ?? -999, atr: r => r.m?.atrPct ?? -999 }[sort];
+  const rows = S.rows.filter(r => r.m && (!pat || r.m.pats.includes(pat))).sort((a, b) => key(b) - key(a));
+  out.innerHTML = rows.length ? rows.map(scrRow).join('') : '<div class="empty">沒有符合條件的標的</div>';
+}
+function scrRow(r) {
+  const m = r.m, attr = r.kind === 'c' ? `data-coin="${esc(r.id)}"` : `data-us="${esc(r.id)}"`;
+  const lvl = x => x ? `${x[0]} ${fmt.pct((x[1] / m.last - 1) * 100, 1)}` : '—';
+  return `<div class="row" ${attr}><div class="nm"><b>${esc(r.sym)} <span class="act ${r.score >= 60 ? 'up' : r.score >= 40 ? 'warn' : 'flat'}">${r.score} 分</span></b>
+      <div class="tags">${m.pats.map(p => `<span class="tag ${p === '超跌反彈' ? 'warn' : 'up'}">${p}</span>`).join('')}${r.warn.map(w => `<span class="tag down">${w}</span>`).join('')}${r.earn ? `<span class="tag warn">財報 ${r.earn.days} 天後</span>` : ''}</div>
+      <span>30 日相對強弱 <span class="${cls(m.rs)}" style="font-weight:700">${fmt.pct(m.rs, 1)}</span> · ATR ${m.atrPct != null ? m.atrPct.toFixed(1) + '%' : '—'} · 量比 ${m.vr != null ? m.vr.toFixed(1) : '—'}</span><br>
+      <span>支撐 ${lvl(m.sup)} · 壓力 ${lvl(m.res)}${r.fund != null ? ` · 資金費率 ${r.fund.toFixed(4)}%` : ''}${r.whale ? ` · 🐋 淨${r.whale > 0 ? '買' : '賣'} ${fmt.big(Math.abs(r.whale))}` : ''}</span></div>
+    <div class="px num"><div>${fmt.price(m.last)}</div><div class="${cls(m.chg1)}">${fmt.pct(m.chg1)}</div>
+      <div class="flex" style="justify-content:flex-end;gap:4px;margin-top:4px">${tvBtn(r.kind, r.sym)}<button class="btn ghost sm" data-opp="${r.kind}:${esc(r.id)}">計畫</button></div></div></div>`;
+}
+function topOpps() {
+  const all = [...(state.scr.c?.rows || []), ...(state.scr.u?.rows || [])].filter(r => r.m && r.score >= 0);
+  return all.sort((a, b) => b.score - a.score).slice(0, 5);
+}
+function oppPlan(key) {
+  const [kind, id] = [key[0], key.slice(2)];
+  const r = (state.scr[kind]?.rows || []).find(x => x.id === id); if (!r) return;
+  openPlan({ kind, sym: r.sym, setup: r.m?.pats.find(p => p !== '多頭排列') || (r.m?.trend ? '趨勢延續' : '其他') }, r.bars);
+}
+
+// 財報（需要 Twelve Data key）
+function nextEarning(sym) {
+  const e = state.earn[sym]; if (!e || !e.date) return null;
+  const days = Math.ceil((Date.parse(e.date + 'T00:00:00') - Date.now()) / 864e5);
+  return days >= 0 && days <= 30 ? { date: e.date, time: e.time, days } : null;
+}
+async function loadEarnings() {
+  if (!state.set.tdKey) return;
+  const syms = state.wl.us.filter(s => !state.earn[s] || Date.now() - state.earn[s].t > 24 * 3600e3);
+  for (const s of syms) {
+    try {
+      const j = await getJSON('https://api.twelvedata.com/earnings?symbol=' + encodeURIComponent(s) + '&apikey=' + encodeURIComponent(state.set.tdKey), 3600e3);
+      const today = todayKey();
+      const up = (j.earnings || []).filter(x => x.date >= today).sort((a, b) => a.date < b.date ? -1 : 1)[0];
+      state.earn[s] = { t: Date.now(), date: up ? up.date : null, time: up ? up.time : null };
+    } catch (e) { state.earn[s] = { t: Date.now(), date: null }; }
+  }
+  store.set('earn', state.earn); renderToday(); renderHold();
+}
+
+// 交易日誌
+function journalStats() {
+  const closed = state.plans.filter(p => p.status === 'closed' && p.riskAmt);
+  const R = p => p.pnl / p.riskAmt, avg = a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0;
+  const agg = list => { const w = list.filter(p => p.pnl > 0), l = list.filter(p => p.pnl <= 0); return { n: list.length, wr: list.length ? w.length / list.length * 100 : 0, aw: avg(w.map(R)), al: avg(l.map(R)), exp: avg(list.map(R)), pnl: list.reduce((s, p) => s + p.pnl, 0) }; };
+  const group = f => { const m = {}; closed.forEach(p => { const k = f(p) || '未標記'; (m[k] = m[k] || []).push(p); }); return Object.entries(m).map(([k, v]) => ({ k, ...agg(v) })).sort((a, b) => b.exp - a.exp); };
+  return { all: agg(closed), setup: group(p => p.setup), regime: group(p => p.regime), market: group(p => p.kind === 'u' ? '美股' : '加密') };
+}
+function renderJournal() {
+  const el = $('#journal'); if (!el) return;
+  const J = journalStats(), A = J.all;
+  if (!A.n) { el.innerHTML = '<div class="card empty">還沒有平倉紀錄。交易計畫平倉後，這裡會自動統計勝率、賺賠比與期望值。</div>'; return; }
+  const card = (l, v, c = '') => `<div class="kcard"><div class="l">${l}</div><div class="v num ${c}">${v}</div></div>`;
+  const tbl = (title, rows) => `<h2 style="margin-top:12px">${title}</h2><div class="card"><table><thead><tr><th>${title.replace('依', '')}</th><th>筆數</th><th>勝率</th><th>期望值</th><th>損益</th></tr></thead><tbody>${rows.map(r => `<tr><td>${esc(r.k)}</td><td class="num">${r.n}</td><td class="num">${r.wr.toFixed(0)}%</td><td class="num ${cls(r.exp)}">${r.exp.toFixed(2)}R</td><td class="num ${cls(r.pnl)}">${fmt.sbig(r.pnl)}</td></tr>`).join('')}</tbody></table></div>`;
+  el.innerHTML = `<div class="grid2">${card('已平倉', A.n + ' 筆')}${card('勝率', A.wr.toFixed(0) + '%')}${card('平均賺／賠', `${A.aw.toFixed(2)}R ／ ${A.al.toFixed(2)}R`)}${card('期望值（每筆）', A.exp.toFixed(2) + 'R', cls(A.exp))}${card('累計損益', fmt.sbig(A.pnl), cls(A.pnl))}${card('判讀', A.n < 20 ? '樣本還少' : A.exp > 0 ? '有正期望值' : '目前是負期望值')}</div>
+    ${tbl('依型態', J.setup)}${tbl('依市場燈號', J.regime)}${tbl('依市場', J.market)}
+    <p class="note" style="margin-top:6px">R＝損益 ÷ 當初設定的最大虧損。期望值為正，代表照這個方法長期做下去是賺錢的；至少累積 20 筆再下結論。</p>`;
+}
+function exportJournal() {
+  const cols = ['建立日期', '平倉日期', '標的', '市場', '方向', '型態', '燈號', '槓桿', '進場', '停損', '目標', '出場', '數量', '最大虧損', '損益', 'R', '理由', '出場條件', '狀態'];
+  const d = t => t ? new Date(t).toLocaleDateString('en-CA') : '';
+  const q = v => { const s = v == null ? '' : String(v); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+  const rows = state.plans.map(p => [d(p.created), p.closedDay || '', p.sym, p.kind === 'u' ? '美股' : '加密', p.dir === 'long' ? '做多' : '做空', p.setup || '', p.regime || '', p.lev, p.entry, p.stop, p.target || '', p.exitPx || '', +(+p.qty).toPrecision(6), +(+p.riskAmt).toFixed(2), p.pnl ?? '', p.pnl != null && p.riskAmt ? (p.pnl / p.riskAmt).toFixed(2) : '', p.reason, p.exit, PST[p.status][0]].map(q).join(','));
+  const csv = '﻿' + cols.join(',') + '\n' + rows.join('\n');
+  try { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = 'invest-radar-journal-' + todayKey() + '.csv'; document.body.appendChild(a); a.click(); a.remove(); toast('已下載交易日誌'); }
+  catch (e) { copyText(csv); }
+}
+
+// 巨鯨價位地圖：強平與成本集中區
+function priceMap(coin) {
+  const W = state.whale; if (!W) return '';
+  const px = W.px?.[coin]?.px; if (!px) return '';
+  const step = px * 0.01, B = {};
+  const put = (p, k, v) => { if (!p || Math.abs(p / px - 1) > 0.3) return; const b = Math.round(p / step); (B[b] = B[b] || { p: b * step, lL: 0, lS: 0, eL: 0, eS: 0 })[k] += v; };
+  W.list.forEach(w => (w.pos || []).filter(p => p.coin === coin).forEach(p => { const long = p.szi > 0; put(p.liq, long ? 'lL' : 'lS', p.val); put(p.entry, long ? 'eL' : 'eS', p.val); }));
+  const top = (k, n = 4) => Object.values(B).filter(b => b[k] > 0).sort((a, b) => b[k] - a[k]).slice(0, n);
+  const line = (b, k, label, c) => `<div class="flex" style="font-size:13px;padding:4px 0"><span style="width:92px" class="num">${fmt.price(b.p)}</span><span class="${c}" style="width:58px">${fmt.pct((b.p / px - 1) * 100, 1)}</span><span style="flex:1">${label}</span><b class="num">${fmt.big(b[k])}</b></div>`;
+  const sec = (title, items) => items.length ? `<div class="note" style="margin-top:8px">${title}</div>${items.join('')}` : '';
+  const liq = [...top('lL').map(b => line(b, 'lL', '多單強平', 'down')), ...top('lS').map(b => line(b, 'lS', '空單強平', 'up'))];
+  const cost = [...top('eL', 3).map(b => line(b, 'eL', '多單成本', 'mute')), ...top('eS', 3).map(b => line(b, 'eS', '空單成本', 'mute'))];
+  if (!liq.length && !cost.length) return '';
+  return `<h2>價位地圖 <small>現價 ${fmt.price(px)}，以 1% 為一格</small></h2><div class="card">${sec('強平集中區：價格常被吸過去，可當目標或停損參考', liq)}${sec('成本集中區：巨鯨的回本價，常成為支撐或壓力', cost)}</div>`;
+}
+function divergence(f) {
+  const c = state.whale?.px?.[f.coin]?.chg; if (c == null) return '';
+  if (f.net > 0 && c < -1) return `<span class="tag up">吸籌：價跌 ${c.toFixed(1)}% 鯨仍買</span>`;
+  if (f.net < 0 && c > 1) return `<span class="tag down">派發：價漲 +${c.toFixed(1)}% 鯨在賣</span>`;
+  return `<span class="tag">24h ${fmt.pct(c, 1)}</span>`;
+}
+
+function earnRows() {
+  return state.wl.us.map(s => ({ s, e: nextEarning(s) })).filter(x => x.e && x.e.days <= 14).sort((a, b) => a.e.days - b.e.days)
+    .map(x => `<div class="ev"><div class="d">${x.e.date.slice(5).replace('-', '/')}<small>${x.e.days === 0 ? '今天' : x.e.days + ' 天後'}</small></div><div><b>${esc(x.s)} 財報</b><div class="note">${esc(x.e.time || '時間未定')}${x.e.days <= 3 ? ' · 財報前留意部位大小' : ''}</div></div></div>`).join('');
+}
+async function fillUsFromHL() {
+  const need = state.wl.us.filter(s => !state.usBars[s]); if (!need.length) return;
+  try {
+    const set = await hlStockSet();
+    await pool(need.filter(s => set['xyz:' + s]), 3, async s => { state.usBars[s] = await hlCandles('xyz:' + s); });
+    renderHold(); renderToday();
+  } catch (e) {}
+}
+
 /* ================= 載入流程 ================= */
 function renderTicker() {
   const items = [], m = state.markets || [];
@@ -1649,6 +1869,7 @@ async function loadAll(force) {
   $('#refreshBtn').textContent = '⟳';
   loadUS();
   if (currentTab === 'whale') loadWhales(force);
+  loadScreener('c', force); loadEarnings(); fillUsFromHL();
 }
 
 /* ================= 事件 ================= */
@@ -1662,14 +1883,16 @@ function goTab(t) {
   try { window.scrollTo(0, 0); } catch (e) {}
   if (t === 'whale') loadWhales();
   if (t === 'today') { renderToday(); loadTvCalendar(); }
+  if (t === 'scan') { renderScreener(); loadScreener(scrView); }
   if (t === 'health' && state.hist) renderTempChart();
 }
 document.addEventListener('click', e => {
   if (e.target.closest('a[href]')) return;
   const p = e.target.closest('[data-pact]');
   if (p) return planAction(p.dataset.pact, p.dataset.id);
-  const t = e.target.closest('[data-tab],[data-open],[data-star],[data-edit],[data-close],[data-whale],[data-whalecoin],[data-coin],[data-us],.seg button');
+  const t = e.target.closest('[data-opp],[data-tab],[data-open],[data-star],[data-edit],[data-close],[data-whale],[data-whalecoin],[data-coin],[data-us],.seg button');
   if (!t) return;
+  if (t.dataset.opp) return oppPlan(t.dataset.opp);
   if (t.dataset.tab) return goTab(t.dataset.tab);
   if (t.dataset.open === 'settings') return openSettings();
   if (t.dataset.star) { e.stopPropagation(); toggleCoin(t.dataset.star, t.dataset.sym, t.dataset.name); if (t.hasAttribute('data-close')) closeModal(); else if ($('#modal').classList.contains('on') && $('#csOut')) { t.classList.toggle('on'); t.textContent = t.classList.contains('on') ? '★' : '☆'; } return; }
@@ -1687,6 +1910,7 @@ document.addEventListener('click', e => {
     if (seg.id === 'whaleSeg') { $('#whaleHL').style.display = v === 'hl' ? '' : 'none'; $('#whaleDEX').style.display = v === 'dex' ? '' : 'none'; $('#whaleBIG').style.display = v === 'big' ? '' : 'none'; if (v === 'big' && !$('#bigOut').innerHTML) scanBig(); }
     if (seg.id === 'whaleSort') { whaleSort = v; loadWhales(); }
     if (seg.id === 'whaleKind') { whaleKind = v; renderWhales(); }
+    if (seg.id === 'scrSeg') { scrView = v; renderScreener(); loadScreener(v); }
   }
 });
 $('#modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
@@ -1697,10 +1921,13 @@ $('#addCoinBtn').onclick = addCoinSheet;
 $('#addUsBtn').onclick = addUsSheet;
 $('#dexGo').onclick = scanDex;
 $('#bigGo').onclick = scanBig;
-$('#btRun').onclick = runBacktest;
 $('#newPlanBtn').onclick = () => openPlan({}, null);
 $('#exportWl').onclick = exportWl;
 $('#copyWl').onclick = () => copyText(wlTvList().join(','));
+$('#scrSort').onchange = renderScreener;
+$('#scrPat').onchange = renderScreener;
+$('#scrRefresh').onclick = () => loadScreener(scrView, true);
+$('#csvBtn').onclick = exportJournal;
 window.addEventListener('hashchange', () => goTab(location.hash.slice(1)));
 
 /* ================= 啟動 ================= */
