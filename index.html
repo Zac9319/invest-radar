@@ -1275,13 +1275,15 @@ async function openDetail(kind, key) {
     <div class="legend" style="margin-top:6px">${MA_COL.map(([n, c]) => `<span><i style="background:${c}"></i>MA${n}</span>`).join('')}</div>
     <div class="seg" id="tfSeg" style="margin:8px 0 0"><button data-v="60">1 小時</button><button data-v="240">4 小時</button><button data-v="D" class="on">日線</button></div>
     <div class="chart" id="dChart"></div>
-    <div class="tags">${(s?.tags || []).map(tagHtml).join('')}</div>
+    ${kind === 'coin' ? '<div id="cvdBox"></div>' : ''}
+    <div class="tags" style="margin-top:8px">${(s?.tags || []).map(tagHtml).join('')}</div>
     <div class="meta" style="margin-top:10px;grid-template-columns:1fr auto 1fr auto"><span>MA20 月線</span><b>${fmt.price(s?.m20)}</b><span>MA60 季線</span><b>${fmt.price(s?.m60)}</b><span>MA200 年線</span><b>${fmt.price(s?.m200)}</b><span>RSI(14)</span><b>${s?.rsi != null ? s.rsi.toFixed(1) : '—'}</b></div>
     ${wp || wf ? `<h2>🐋 Hyperliquid 巨鯨</h2><div class="card note">${wp ? `持倉：多 ${fmt.big(wp.long)}（${wp.nL} 人）／空 ${fmt.big(wp.short)}（${wp.nS} 人），淨 <b class="${cls(wp.net)}">${fmt.sbig(wp.net)}</b>` : ''}${wf ? `<br>24h：買 ${fmt.big(wf.buy)}／賣 ${fmt.big(wf.sell)}，淨 <b class="${cls(wf.net)}">${fmt.sbig(wf.net)}</b>` : ''}<br><button class="btn ghost sm" style="margin-top:6px" data-whalecoin="${esc(title)}">看是哪些巨鯨</button></div>` : ''}
     ${(() => { const NL = newsFor(title); return NL.length ? `<h2>📰 相關新聞</h2><div class="card">${NL.map(newsRow).join('')}</div>` : ''; })()}
     ${inWl ? `<button class="btn ghost sm" style="margin-top:10px" data-edit="${esc(hk)}">編輯持倉數量與成本</button>` : ''}`);
   drawChart($('#dChart'), bars);
   window._detail = { kind, title: title.toUpperCase(), bars };
+  if (kind === 'coin') loadCvd('D');
   const k = kind === 'coin' ? 'c' : 'u';
   $('#dPlan').onclick = () => openPlan({ kind: k, sym: title.toUpperCase() }, bars);
   $('#dPine').onclick = () => openPine(k, title.toUpperCase(), bars, s);
@@ -2010,6 +2012,7 @@ async function switchTf(tf) {
   el.innerHTML = '';
   if (!bars || bars.length < 20) { el.innerHTML = '<div class="empty">這個週期沒有資料</div>'; return; }
   drawChart(el, bars);
+  if (d.kind === 'coin') loadCvd(tf);
 }
 
 /* ================= 備份與還原 ================= */
@@ -2310,6 +2313,56 @@ function renderReview() {
   const el = $('#closedList'); if (!el) return;
   const C = state.plans.filter(p => p.status === 'closed').slice(0, 30);
   el.innerHTML = C.length ? C.map(planCard).join('') : '<div class="card empty" style="margin-top:8px">還沒有平倉紀錄</div>';
+}
+
+/* ================= 訂單流：CVD（主動買賣量差） ================= */
+let cvdTok = 0;
+async function loadCvd(tf) {
+  const box = $('#cvdBox'), d = window._detail; if (!box || !d) return;
+  const tok = ++cvdTok, sym = d.title;
+  const sub = { D: '60', 240: '15', 60: '5' }[tf], span = { D: 86400, 240: 14400, 60: 3600 }[tf], tfName = { D: '日線', 240: '4 小時', 60: '1 小時' }[tf];
+  if (window._cvdChart) { try { window._cvdChart.remove(); } catch (e) {} window._cvdChart = null; }
+  box.innerHTML = '<div class="note" style="margin-top:8px"><span class="spin">⟳</span> 計算主動買賣量…</div>';
+  const [k, tr] = await Promise.all([
+    by(`kline?category=linear&symbol=${sym}USDT&interval=${sub}&limit=1000`, 60e3).catch(() => null),
+    by(`recent-trade?category=linear&symbol=${sym}USDT&limit=1000`, 15e3).catch(() => null)]);
+  if (tok !== cvdTok || !$('#cvdBox')) return;
+  const raw = (k?.list || []).map(x => ({ t: Math.floor(+x[0] / 1000), o: +x[1], c: +x[4], v: +x[5] })).reverse();
+  if (raw.length < 100) { box.innerHTML = ''; return; }
+  // 用小週期 K 線估算：收漲的小 K 整根算主動買，收跌算主動賣，再累加
+  const P = []; let cum = 0;
+  raw.forEach(b => { cum += Math.sign(b.c - b.o) * b.v; const g = Math.floor(b.t / span) * span, last = P[P.length - 1]; if (last && last.t === g) { last.cvd = cum; last.c = b.c; } else P.push({ t: g, cvd: cum, c: b.c }); });
+  P.shift(); // 第一組通常不完整
+  const n = Math.min(20, Math.floor(P.length / 2)), A = P.slice(-2 * n, -n), B = P.slice(-n);
+  const ext = (L, f) => L.reduce((m, x) => f(x.c, m.c) ? x : m, L[0]);
+  const hiA = ext(A, (a, b) => a > b), hiB = ext(B, (a, b) => a > b), loA = ext(A, (a, b) => a < b), loB = ext(B, (a, b) => a < b);
+  const dp = B[B.length - 1].c / B[0].c - 1, dc = B[B.length - 1].cvd - B[0].cvd;
+  let tag, msg;
+  if (hiB.c > hiA.c && hiB.cvd < hiA.cvd) { tag = ['看跌背離', 'down']; msg = '價格創了新高，但累積的主動買量比上一個高點少，追價力道在減弱，留意回檔'; }
+  else if (loB.c < loA.c && loB.cvd > loA.cvd) { tag = ['看漲背離', 'up']; msg = '價格創了新低，但主動賣量沒有跟著放大，賣壓在減弱，留意反彈'; }
+  else if (dp > 0 && dc > 0) { tag = ['買盤跟上', 'up']; msg = '價格上漲，主動買量同步增加，漲勢有買盤支撐'; }
+  else if (dp < 0 && dc < 0) { tag = ['賣壓持續', 'down']; msg = '價格下跌，主動賣量同步增加，跌勢還有賣壓'; }
+  else if (dp > 0) { tag = ['漲勢偏虛', 'warn']; msg = '價格上漲，但主動賣比主動買多，可能是空單回補或掛單被動推升，持續性存疑'; }
+  else { tag = ['有人承接', 'warn']; msg = '價格下跌，但主動買比主動賣多，可能有人在逢低承接'; }
+  let live = '';
+  const T = tr?.list || [];
+  if (T.length > 50) {
+    let buy = 0, sell = 0; T.forEach(x => { const v = +x.size * +x.price; if (x.side === 'Buy') buy += v; else sell += v; });
+    const mins = Math.max(1, Math.round((+T[0].time - +T[T.length - 1].time) / 60e3)), pct = buy / (buy + sell) * 100;
+    live = `<div class="note" style="margin-top:6px">即時（真實成交）：最近 ${T.length} 筆、約 ${mins} 分鐘內，主動買 <b class="${pct >= 55 ? 'up' : pct <= 45 ? 'down' : ''}">${pct.toFixed(0)}%</b>（${fmt.big(buy)}）／主動賣 ${(100 - pct).toFixed(0)}%（${fmt.big(sell)}）</div>`;
+  }
+  const days = Math.round((P[P.length - 1].t - P[0].t) / 86400);
+  box.innerHTML = `<h2 style="margin-top:12px">主動買賣量 CVD <small>${tfName} · 近 ${days >= 2 ? days + ' 天' : Math.round((P[P.length - 1].t - P[0].t) / 3600) + ' 小時'} · Bybit 合約</small></h2>
+    <div class="card"><div><span class="act ${tag[1]}">${tag[0]}</span> <span class="note">${msg}</span></div>
+    <div id="cvdChart" style="height:120px;margin-top:6px"></div>${live}
+    <div class="note" style="margin-top:6px">CVD＝市價買單量減市價賣單量的累計。線往上代表主動買的人多。重點看它和價格有沒有背離。圖上的線是用小週期 K 線估算的（算法和 TradingView 的 CVD 指標類似），不是逐筆成交。</div></div>`;
+  const el = $('#cvdChart');
+  if (!window.LightweightCharts) { el.innerHTML = spark(P.map(x => x.cvd), 520, 120); return; }
+  const th = chartTheme();
+  const ch = LightweightCharts.createChart(el, { autoSize: true, layout: { background: { color: 'transparent' }, textColor: th.text }, grid: { vertLines: { visible: false }, horzLines: { color: th.line } }, rightPriceScale: { borderColor: th.line }, timeScale: { borderColor: th.line }, handleScroll: false, handleScale: false });
+  window._cvdChart = ch;
+  ch.addLineSeries({ color: dc >= 0 ? th.up : th.down, lineWidth: 2, priceLineVisible: false, priceFormat: { type: 'volume' } }).setData(P.map(x => ({ time: x.t, value: x.cvd })));
+  ch.timeScale().fitContent();
 }
 
 /* ================= 重大經濟數據 ================= */
