@@ -2047,6 +2047,8 @@ const NEWS_NAMES = {
 const NEWS_CRYPTO = new Set(['BTC', 'ETH', 'SOL', 'XRP', 'DOGE', 'BNB', 'HYPE', 'USDT']);
 let newsView = 'all', newsMore = false;
 
+const _nd = document.createElement('textarea');
+function newsDecode(t) { _nd.innerHTML = String(t).replace(/<[^>]*>/g, ''); return _nd.value.replace(/\s+/g, ' ').trim(); }
 function newsTokens(t) {
   const s = t.toLowerCase(), out = new Set();
   (s.match(/[a-z0-9]{3,}/g) || []).forEach(w => { if (!/^(the|and|for|with|from|that|this|after|over|into|amid|says?|said|will|its|are|was|has|have|new|how|why|what)$/.test(w)) out.add(w); });
@@ -2071,7 +2073,7 @@ function newsSyms(title) {
 }
 async function loadNews(force) {
   const res = await Promise.all(NEWS_FEEDS.map(f => getJSON('https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(f.url), force ? 0 : 10 * 60e3, true)
-    .then(j => (j.items || []).map(it => ({ f, title: (it.title || '').replace(/\s+/g, ' ').trim(), link: it.link, t: Date.parse((it.pubDate || '').replace(' ', 'T') + 'Z') || Date.now() })))
+    .then(j => (j.items || []).map(it => ({ f, title: newsDecode(it.title || ''), link: it.link, t: Date.parse((it.pubDate || '').replace(' ', 'T') + 'Z') || Date.now() })))
     .catch(() => [])));
   const ok = res.filter(r => r.length).length;
   if (!ok) { state.errors.news = '新聞來源暫時讀不到，稍後再試'; renderNews(); return; }
@@ -2085,15 +2087,11 @@ async function loadNews(force) {
     else clusters.push({ ...x, src: [x.f.name] });
   });
   clusters.forEach(c => { c.syms = newsSyms(c.title); });
-  for (const z of clusters.filter(c => c.f.zh && c.syms.length)) {
-    const en = clusters.find(c => !c.f.zh && !c.zhOf && c.syms.some(s => z.syms.includes(s)) && Math.abs(c.t - z.t) < 12 * 36e5 && newsSim(newsTokens(c.f.cat || ''), newsTokens(z.f.cat || '')) >= 0 && c !== z);
-    if (en && !en.zh) { en.zh = { title: z.title, link: z.link, src: z.f.name }; en.src.push(z.f.name); z.drop = 1; }
-  }
-  for (let i = clusters.length - 1; i >= 0; i--) if (clusters[i].drop) clusters.splice(i, 1);
   clusters.forEach(c => {
-    let sc = c.f.w; const cats = new Set(c.f.cat ? [c.f.cat] : []), hits = [];
+    let sc = c.f.w; const cats = new Set(), hits = [];
     NEWS_KW.forEach(([re, w, cat]) => { const m = c.title.match(re); if (m) { sc += w; if (cat) cats.add(cat); hits.push(m[0]); } });
     c.syms.forEach(s => cats.add(NEWS_CRYPTO.has(s) || state.wl.crypto.some(x => x.sym.toUpperCase() === s) ? 'crypto' : 'stock'));
+    if (!cats.size && c.f.cat) cats.add(c.f.cat);
     c.mine = c.syms.filter(s => mine.has(s));
     if (c.mine.length) sc += 4;
     if (c.src.length > 1) sc += 2.5 * (c.src.length - 1);
@@ -2103,7 +2101,13 @@ async function loadNews(force) {
     sc -= hrs <= 6 ? 0 : hrs <= 24 ? (hrs - 6) * 0.12 : 2.2 + (hrs - 24) * 0.15;
     c.score = Math.round(sc * 10) / 10; c.cats = [...cats]; c.hits = hits; c.hot = sc >= 11;
   });
-  let list = clusters.filter(c => c.score > 1).sort((a, b) => b.score - a.score);
+  let pool = clusters.filter(c => c.score > 1).sort((a, b) => b.score - a.score), list = [];
+  const seen = {};
+  while (pool.length) {
+    pool.forEach(c => { c.rk = c.score - Math.max(0, ...c.syms.map(s => (seen[s] || 0) - 1)) * 3; });
+    pool.sort((a, b) => b.rk - a.rk);
+    const c = pool.shift(); list.push(c); c.syms.forEach(s => seen[s] = (seen[s] || 0) + 1);
+  }
   const recent = list.filter(c => now - c.t < 48 * 36e5);
   if (recent.length >= 10) list = recent;
   state.news = { list, at: now, sources: ok };
