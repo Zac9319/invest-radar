@@ -156,7 +156,11 @@ textarea{font:inherit;color:var(--text);background:var(--card2);border:1px solid
   <div class="card" id="newsList"><div class="empty">新聞載入中…</div></div>
   <h2>今日事件 <small>選擇權到期與美國經濟數據</small></h2>
   <div class="card" id="expiryCard"></div>
-  <div class="card" id="tvCalendar" style="margin-top:10px;padding:0;overflow:hidden;min-height:420px"><div class="empty">經濟日曆載入中…</div></div>
+  <h2>重大經濟數據 <small>只列會影響行情的，附中文說明</small></h2>
+  <div class="card" id="ecoCard"><div class="empty">載入中…</div></div>
+  <details id="tvCalWrap" style="margin-top:10px"><summary class="note" style="cursor:pointer;padding:6px 2px">完整日曆（TradingView，英文）</summary>
+    <div class="card" id="tvCalendar" style="margin-top:6px;padding:0;overflow:hidden;min-height:420px"><div class="empty">經濟日曆載入中…</div></div>
+    <p class="note" style="margin-top:6px">對照：「預」＝市場預期，「之」＝前值。重要：CPI、Core PCE（通膨）、Non-Farm Payrolls（非農）、Unemployment Rate（失業率）、Fed Interest Rate Decision（利率決議）。中等：Retail Sales（零售銷售）、PPI、GDP、ISM PMI。可忽略：Initial Jobless Clm（初領失業金）、Building Permits（建築許可）、Housing Starts。</p></details>
 </section>
 
 <!-- 機會 -->
@@ -1539,7 +1543,7 @@ function planCard(p) {
       <button class="btn ghost sm" data-pact="del" data-id="${p.pid}">刪除</button></div></div>`;
 }
 function renderToday() {
-  renderSession(); renderNews();
+  renderSession(); renderNews(); renderEco();
   if (!$('#regimeCard')) return;
   const R = computeRegime();
   $('#regimeCard').innerHTML = R ? `<div class="regime"><div class="big ${R.cls}">${R.label}</div><div><div style="font-weight:700">${esc(R.tip)}</div><div class="note">今日市場環境</div></div></div>
@@ -1563,7 +1567,7 @@ function renderToday() {
   $('#expiryCard').innerHTML = expiries().map(e => {
     const days = Math.ceil((e.t - Date.now()) / 864e5);
     return `<div class="ev"><div class="d">${(e.utc ? e.t.getUTCMonth() : e.t.getMonth()) + 1}/${e.utc ? e.t.getUTCDate() : e.t.getDate()}<small>週${'日一二三四五六'[e.utc ? e.t.getUTCDay() : e.t.getDay()]} · ${days <= 0 ? '今天' : days + ' 天後'}</small></div><div><b>${e.name}</b><div class="note">${e.note} · ${e.time}</div></div></div>`;
-  }).join('') + earnRows() + '<p class="note" style="margin-top:6px">' + (state.set.tdKey ? '' : '加上 Twelve Data key 後，會顯示自選美股的財報日。') + '到期前後常出現劇烈波動。下方是美國經濟數據日曆（CPI、FOMC、非農等）。</p>';
+  }).join('') + earnRows() + '<p class="note" style="margin-top:6px">' + (state.set.tdKey ? '' : '加上 Twelve Data key 後，會顯示自選美股的財報日。') + '到期前後常出現劇烈波動。</p>';
   const ae = document.activeElement;
   renderExposure(); if (currentTab === 'review') renderReview();
   if (ae && $('main').contains(ae) && /INPUT|TEXTAREA/.test(ae.tagName)) return; // 使用者正在輸入，不重畫
@@ -2220,6 +2224,8 @@ function preTradeChecks(q, o) {
   if (R) out.push({ ok: !(R.lvl === 'def' && q.dir === 'long'), t: R.lvl === 'def' && q.dir === 'long' ? '環境是防守，做多請縮小部位' : `環境燈號：${R.label}` });
   const ex = expiries().find(e => (e.t - Date.now()) / 36e5 < 24 && e.t > Date.now());
   out.push({ ok: !ex, t: ex ? `24 小時內有 ${ex.name}，波動可能放大` : '24 小時內沒有選擇權大到期' });
+  const eb = ecoNextBig(24 * 36e5);
+  out.push({ ok: !eb, t: eb ? `${ecoLeft(eb.t - Date.now())}後公布 ${esc(eb.zh || eb.title)}，建議等公布後再進場或縮小部位` : '24 小時內沒有重大經濟數據' });
   const ev = q.kind === 'u' && nextEarning(q.sym);
   if (ev && ev.days <= 5) out.push({ ok: false, t: `${esc(q.sym)} 財報 ${ev.days} 天後，跳空風險` });
   out.push({ ok: !lockState().locked, t: lockState().locked ? '今天已達每日最大虧損' : '今日虧損未達上限' });
@@ -2306,6 +2312,82 @@ function renderReview() {
   el.innerHTML = C.length ? C.map(planCard).join('') : '<div class="card empty" style="margin-top:8px">還沒有平倉紀錄</div>';
 }
 
+/* ================= 重大經濟數據 ================= */
+// [正則, 中文名, 重要性 3高 2中 1低, 說明]
+const ECO_MAP = [
+  [/federal funds rate|fomc statement|fomc press/i, 'FOMC 利率決議', 3, '決定升息、降息或不動。聲明與記者會的語氣常比決議本身更影響行情'],
+  [/fomc economic projections/i, 'FOMC 經濟預測（點陣圖）', 3, '官員對未來利率的預測，比上次鷹派（預期降息次數變少）對股市與加密偏空'],
+  [/fomc meeting minutes/i, 'FOMC 會議紀要', 2, '三週前會議的詳細討論，通常影響有限，除非透露新的分歧'],
+  [/fed chair .* (speaks|testifies)/i, '聯準會主席談話', 2, '談到利率方向時會有波動，留意是否改變降息或升息預期'],
+  [/core pce/i, '核心 PCE 物價', 3, '聯準會最看重的通膨指標。高於預期 → 降息預期降溫，偏空；低於預期偏多'],
+  [/\bcore cpi\b/i, '核心 CPI（不含食物能源）', 3, '高於預期 → 通膨黏著，降息預期降溫，股市與加密偏空；低於預期偏多'],
+  [/\bcpi\b/i, 'CPI 消費者物價', 3, '每月最重要的通膨數據。高於預期偏空，低於預期偏多，公布瞬間波動很大'],
+  [/non-farm employment|nonfarm payrolls/i, '非農就業', 3, '太強 → 降息預期降溫；太弱 → 擔心衰退。離預期越遠波動越大'],
+  [/unemployment rate/i, '失業率', 3, '和非農一起公布。明顯上升會引發衰退擔憂'],
+  [/average hourly earnings/i, '平均時薪', 2, '薪資漲太快代表通膨壓力，和非農一起看'],
+  [/\bppi\b/i, 'PPI 生產者物價', 2, '企業端的通膨，常領先 CPI。高於預期偏空'],
+  [/retail sales/i, '零售銷售', 2, '反映消費力道。和預期差很多時，美股與加密都會動'],
+  [/\bgdp\b/i, 'GDP 經濟成長', 2, '初值影響最大。遠低於預期會引發衰退擔憂'],
+  [/ism manufacturing pmi/i, 'ISM 製造業 PMI', 2, '50 以上代表擴張。大幅低於預期偏空'],
+  [/ism services pmi/i, 'ISM 服務業 PMI', 2, '服務業占美國經濟大宗，50 以上代表擴張'],
+  [/jolts/i, 'JOLTS 職缺數', 2, '職缺多代表勞動市場緊，降息壓力小'],
+  [/adp non-farm/i, 'ADP 小非農', 2, '非農前兩天公布的民間就業數據，參考用'],
+  [/uom consumer sentiment|uom inflation/i, '密大消費者信心與通膨預期', 2, '通膨預期上升時偏空'],
+  [/cb consumer confidence/i, '消費者信心（經濟諮商會）', 1, '通常影響不大'],
+  [/unemployment claims|jobless/i, '初領失業金', 1, '每週四公布，通常影響不大，除非突然暴增'],
+  [/building permits|housing starts|home sales/i, '房市數據', 1, '短線交易基本上可以忽略'],
+  [/empire state|philly fed|flash .* pmi|durable goods|trade balance|crude oil|bond auction|note auction/i, null, 1, '']
+];
+// FOMC 決議時間（UTC）。2027 年為聯準會公布的暫定日期
+const FOMC_UTC = ['2026-12-09T19:00', '2027-01-27T19:00', '2027-03-17T18:00', '2027-04-28T18:00', '2027-06-09T18:00'];
+let ecoAll = false, ecoTry = 0;
+function ecoInfo(title, impact) {
+  const m = ECO_MAP.find(x => x[0].test(title));
+  if (m) return { zh: m[1], lvl: m[2], tip: m[3] };
+  return { zh: null, lvl: impact === 'High' ? 3 : impact === 'Medium' ? 2 : 1, tip: '' };
+}
+async function loadEco(force) {
+  if (!force && Date.now() - ecoTry < 30 * 60e3) return renderEco();
+  ecoTry = Date.now();
+  const get = n => getJSON('https://nfs.faireconomy.media/ff_calendar_' + n + '.json', force ? 10 * 60e3 : 3 * 36e5, true).catch(() => null);
+  const [a, b] = await Promise.all([get('thisweek'), get('nextweek')]);
+  if (!Array.isArray(a) && !Array.isArray(b)) { state.eco = { list: [], err: true }; return renderEco(); }
+  const list = [...(Array.isArray(a) ? a : []), ...(Array.isArray(b) ? b : [])].filter(x => x.country === 'USD' && x.impact !== 'Holiday')
+    .map(x => ({ t: Date.parse(x.date), title: x.title, fc: x.forecast || '', pv: x.previous || '', ...ecoInfo(x.title, x.impact) })).filter(x => x.t);
+  state.eco = { list, err: false };
+  renderEco();
+}
+function ecoEvents() {
+  const now = Date.now(), L = [...(state.eco?.list || [])];
+  FOMC_UTC.map(s => Date.parse(s + ':00Z')).filter(t => t > now - 36e5 && t < now + 60 * 864e5).forEach(t => {
+    if (!L.some(x => /federal funds rate|fomc statement/i.test(x.title) && Math.abs(x.t - t) < 864e5)) L.push({ t, title: 'FOMC Rate Decision', fc: '', pv: '', ...ecoInfo('Federal Funds Rate') });
+  });
+  return L.filter(x => x.t > now - 36e5).sort((a, b) => a.t - b.t);
+}
+const ecoLeft = ms => { const m = Math.max(0, Math.round(ms / 60e3)), d = Math.floor(m / 1440), h = Math.floor(m % 1440 / 60); return d ? `${d} 天 ${h} 小時` : h ? `${h} 小時 ${m % 60} 分` : `${m} 分鐘`; };
+const ecoNextBig = (within = Infinity) => ecoEvents().find(x => x.lvl === 3 && x.t > Date.now() && x.t - Date.now() < within);
+function renderEco() {
+  const el = $('#ecoCard'); if (!el) return;
+  const E = ecoEvents(), now = Date.now(), feedOk = state.eco && !state.eco.err, hasFeed = feedOk && state.eco.list.some(x => x.t > now);
+  const show = E.filter(x => ecoAll || x.lvl >= 2), big = ecoNextBig(), soon = big && big.t - now < 2 * 36e5;
+  const lv = { 3: ['高', 'down'], 2: ['中', 'warn'], 1: ['低', 'flat'] };
+  const row = x => { const d = new Date(x.t), past = x.t < now;
+    return `<div class="ev" style="${past ? 'opacity:.5' : ''}"><div class="d">${d.getMonth() + 1}/${d.getDate()}<small>週${'日一二三四五六'[d.getDay()]} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}</small></div>
+      <div><b>${esc(x.zh || x.title)}</b> <span class="act ${lv[x.lvl][1]}">${lv[x.lvl][0]}</span>${past ? ' <span class="note">已公布</span>' : ''}
+      <div class="note">${x.zh ? esc(x.title) : ''}${x.fc ? ` · 預期 ${esc(x.fc)}` : ''}${x.pv ? ` · 前值 ${esc(x.pv)}` : ''}</div>${x.tip ? `<div class="note">${esc(x.tip)}</div>` : ''}</div></div>`; };
+  el.innerHTML = (big ? `<div class="${soon ? 'warnl' : 'note'}" style="font-size:13px;margin-bottom:6px">${soon ? '⚠ ' : ''}下一個重大數據：<b style="color:var(--text)">${esc(big.zh || big.title)}</b>，還有 ${ecoLeft(big.t - now)}${soon ? '。公布前後 30 分鐘不建議開新倉' : ''}</div>` : '')
+    + (show.length ? show.slice(0, 14).map(row).join('') : `<div class="empty">${hasFeed ? '接下來沒有中、高重要性的數據' : feedOk ? '本週的數據都公布完了，下週清單通常在週末更新' : '數據清單暫時讀不到'}</div>`)
+    + `<div class="flex" style="margin-top:8px">${feedOk && E.some(x => x.lvl < 2) ? `<button class="btn ghost sm" id="ecoAllBtn">${ecoAll ? '只看重要的' : '顯示次要數據'}</button>` : ''}<span class="sp"></span><span class="note">台北時間 · 高＝公布時常有大波動</span></div>`;
+  const b = $('#ecoAllBtn'); if (b) b.onclick = () => { ecoAll = !ecoAll; renderEco(); };
+  // 清單讀不到或沒有未來數據時，自動展開 TradingView 完整日曆當備援
+  const w = $('#tvCalWrap'); if (w && state.eco && !hasFeed && !w.dataset.auto) { w.dataset.auto = 1; w.open = true; loadTvCalendar(); }
+}
+function ecoAlerts() {
+  const x = ecoNextBig(30 * 60e3); if (!x) return;
+  notify('⏰ ' + ecoLeft(x.t - Date.now()) + '後公布：' + (x.zh || x.title), '公布前後波動大，留意持倉的停損，暫時別開新倉', 'eco:' + x.title + x.t);
+}
+document.addEventListener('toggle', e => { if (e.target.id === 'tvCalWrap' && e.target.open) loadTvCalendar(); }, true);
+
 /* ================= 載入流程 ================= */
 function renderTicker() {
   const items = [], m = state.markets || [];
@@ -2351,6 +2433,7 @@ async function loadAll(force) {
   if (currentTab === 'scan' && scrView === 'whale') loadWhales(force);
   hlCtx('xyz').then(x => { state.hlx = x; }).catch(() => {});
   loadScreener('c', force).then(() => loadScreener('u', force)).then(checkAlerts); loadEarnings(); fillUsFromHL();
+  loadEco(force).catch(() => {});
   loadNews(force).catch(e => { state.errors.news = '新聞讀取失敗：' + e.message; renderNews(); });
   checkAlerts();
 }
@@ -2367,7 +2450,7 @@ function goTab(t) {
   try { if (location.hash !== '#' + t) history.replaceState(null, '', '#' + t); } catch (e) {} // 預覽框等沙盒環境不允許改網址
   try { window.scrollTo(0, 0); } catch (e) {}
   if (t === 'whale') loadWhales();
-  if (t === 'today') { renderToday(); loadTvCalendar(); }
+  if (t === 'today') { renderToday(); }
   if (t === 'scan') { renderScreener(); if (scrView === 'whale') loadWhales(); else if (scrView !== 'crowd') loadScreener(scrView); }
   if (t === 'review') renderReview();
   if (t === 'hold') renderExposure();
@@ -2436,7 +2519,7 @@ goTab(startTab);
 renderAllViews();
 loadAll();
 setInterval(() => { if (!document.hidden) loadAll(); }, 5 * 60e3);
-setInterval(() => { if (!document.hidden) { renderSession(); if (Date.now() - (state.news?.at || 0) > 10 * 60e3) loadNews().catch(() => {}); } }, 30e3);
+setInterval(() => { if (!document.hidden) { renderSession(); renderEco(); ecoAlerts(); if (Date.now() - (state.news?.at || 0) > 10 * 60e3) loadNews().catch(() => {}); } }, 30e3);
 setInterval(() => { if (!document.hidden) { fetchMarkets().then(d => { state.markets = d; checkAlerts(); }).catch(() => {}); hlCtx('xyz').then(x => { state.hlx = x; }).catch(() => {}); } }, 60e3);
 try { if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {}); } catch (e) {}
 </script>
