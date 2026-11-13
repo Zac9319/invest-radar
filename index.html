@@ -128,6 +128,7 @@ textarea{font:inherit;color:var(--text);background:var(--card2);border:1px solid
 .ev{display:flex;gap:10px;align-items:center;padding:8px 2px;border-bottom:1px solid var(--line);font-size:13px}.ev:last-child{border-bottom:0}
 .ev .d{min-width:62px;text-align:center;font-weight:700}.ev .d small{display:block;font-weight:400;font-size:11px;color:var(--mute)}
 .warnl{color:var(--accent);font-size:12px;margin-top:4px}
+.tab.legacy{display:none!important}
 </style>
 </head>
 <body>
@@ -142,7 +143,7 @@ textarea{font:inherit;color:var(--text);background:var(--card2);border:1px solid
 </header>
 
 <main>
-<!-- 作戰 -->
+<!-- 今日 -->
 <section class="tab" id="tab-today">
   <div class="card" id="sessionBar"></div>
   <div class="card" id="regimeCard"><div class="empty">計算中…</div></div>
@@ -153,24 +154,14 @@ textarea{font:inherit;color:var(--text);background:var(--card2);border:1px solid
   <div class="card" id="oppList"><div class="empty">掃描中…</div></div>
   <h2>重點新聞 <small>總經、美股、加密 10～20 篇，依重要性排序</small><span class="sp"></span><button class="btn ghost sm" id="newsRefresh">⟳</button></h2>
   <div class="card" id="newsList"><div class="empty">新聞載入中…</div></div>
-  <h2>我的部位要處理 <span class="sp"></span><button class="btn ghost sm" data-tab="hold">全部持倉</button></h2>
-  <div class="card" id="todoList"><div class="empty">載入中…</div></div>
-  <h2>交易計畫 <small>先算好風險再下單</small><span class="sp"></span><button class="btn sm" id="newPlanBtn">＋ 新計畫</button></h2>
-  <div class="card" id="riskSum"></div>
-  <div id="planList"></div>
-  <h2>交易日誌 <small>平倉後自動統計</small><span class="sp"></span><button class="btn ghost sm" id="csvBtn">匯出 CSV</button></h2>
-  <div id="journal"></div>
   <h2>今日事件 <small>選擇權到期與美國經濟數據</small></h2>
   <div class="card" id="expiryCard"></div>
   <div class="card" id="tvCalendar" style="margin-top:10px;padding:0;overflow:hidden;min-height:420px"><div class="empty">經濟日曆載入中…</div></div>
-  <h2>TradingView <small>清單與指標</small></h2>
-  <div class="card"><div class="flex" style="flex-wrap:wrap"><button class="btn ghost sm" id="exportWl">下載自選清單 .txt</button><button class="btn ghost sm" id="copyWl">複製清單</button></div>
-    <p class="note" style="margin-top:6px">TradingView → 觀察清單 →「匯入清單」選這個檔案。每一檔的詳細頁可以產生 Pine 指標，把關鍵價位畫進 TradingView。</p></div>
 </section>
 
-<!-- 篩選 -->
+<!-- 機會 -->
 <section class="tab" id="tab-scan">
-  <div class="seg" id="scrSeg"><button data-v="c" class="on">加密貨幣</button><button data-v="u">美股</button><button data-v="sec">類股輪動</button></div>
+  <div class="seg" id="scrSeg"><button data-v="c" class="on">加密貨幣</button><button data-v="u">美股</button><button data-v="sec">類股</button><button data-v="crowd">擁擠</button><button data-v="whale">巨鯨</button></div>
   <div class="flex" id="scrCtl" style="margin-bottom:10px">
     <select id="scrDir" style="width:auto"><option value="long">做多</option><option value="short">做空</option></select>
     <select id="scrSort"><option value="score">依綜合分數</option><option value="rs">依相對強弱</option><option value="vr">依量比</option><option value="atr">依波動 ATR%</option></select>
@@ -179,10 +170,29 @@ textarea{font:inherit;color:var(--text);background:var(--card2);border:1px solid
   </div>
   <div class="card note" id="scrNote"></div>
   <div class="card" id="scrOut" style="margin-top:10px"><div class="empty">切換到此分頁後開始掃描…</div></div>
+  <div id="oppWhale" style="display:none">
+  <div id="whaleHL">
+    <div class="card note" id="whaleIntro">追蹤 Hyperliquid 上資金 ≥ 一百萬美元、而且有在交易的大戶（排除不交易的金庫與高頻做市商）。地址、持倉、成交都是鏈上公開資料。</div>
+    <div class="seg" id="whaleSort" style="margin-top:10px">
+      <button data-v="pnl" class="on">本月最賺</button>
+      <button data-v="size">資金最大</button>
+      <button data-v="week">本週最賺</button>
+    </div>
+    <div class="seg" id="whaleKind"><button data-v="all" class="on">全部</button><button data-v="c">加密貨幣</button><button data-v="u">美股與其他</button></div>
+    <h2>巨鯨 24 小時在買賣什麼 <small id="whaleFillNote"></small></h2>
+    <div class="card" id="whaleFlow"><div class="empty">切換到此分頁後開始載入…</div></div>
+    <h2>巨鯨目前持倉共識 <small>多空部位加總</small></h2>
+    <div class="card" id="whalePos"><div class="empty">載入中…</div></div>
+    <h2>大額動作 <small>單一巨鯨單一幣種 24h ≥ $10 萬</small></h2>
+    <div class="card feed" id="whaleFeed"><div class="empty">載入中…</div></div>
+    <h2>追蹤名單</h2>
+    <div class="card" id="whaleList"><div class="empty">載入中…</div></div>
+  </div>
+  </div>
 </section>
 
 <!-- 體檢 -->
-<section class="tab" id="tab-health">
+<section class="tab legacy" id="tab-health">
   <div class="alerts" id="alerts"></div>
   <div class="card">
     <div class="hero">
@@ -208,28 +218,11 @@ textarea{font:inherit;color:var(--text);background:var(--card2);border:1px solid
 </section>
 
 <!-- 巨鯨 -->
-<section class="tab" id="tab-whale">
+<section class="tab legacy" id="tab-whale">
   <div class="seg" id="whaleSeg">
     <button data-v="hl" class="on">合約巨鯨</button>
     <button data-v="dex">鏈上大額</button>
     <button data-v="big">交易所大單</button>
-  </div>
-  <div id="whaleHL">
-    <div class="card note" id="whaleIntro">追蹤 Hyperliquid 上資金 ≥ 一百萬美元、而且有在交易的大戶（排除不交易的金庫與高頻做市商）。地址、持倉、成交都是鏈上公開資料。</div>
-    <div class="seg" id="whaleSort" style="margin-top:10px">
-      <button data-v="pnl" class="on">本月最賺</button>
-      <button data-v="size">資金最大</button>
-      <button data-v="week">本週最賺</button>
-    </div>
-    <div class="seg" id="whaleKind"><button data-v="all" class="on">全部</button><button data-v="c">加密貨幣</button><button data-v="u">美股與其他</button></div>
-    <h2>巨鯨 24 小時在買賣什麼 <small id="whaleFillNote"></small></h2>
-    <div class="card" id="whaleFlow"><div class="empty">切換到此分頁後開始載入…</div></div>
-    <h2>巨鯨目前持倉共識 <small>多空部位加總</small></h2>
-    <div class="card" id="whalePos"><div class="empty">載入中…</div></div>
-    <h2>大額動作 <small>單一巨鯨單一幣種 24h ≥ $10 萬</small></h2>
-    <div class="card feed" id="whaleFeed"><div class="empty">載入中…</div></div>
-    <h2>追蹤名單</h2>
-    <div class="card" id="whaleList"><div class="empty">載入中…</div></div>
   </div>
   <div id="whaleDEX" style="display:none">
     <div class="card note">掃描該鏈 24h 成交量最大、流動性 ≥ $100 萬的交易池，列出單筆 ≥ 門檻的鏈上買賣。注意：大單也包含套利機器人與聚合器路由，要搭配錢包地址判斷。</div>
@@ -251,7 +244,7 @@ textarea{font:inherit;color:var(--text);background:var(--card2);border:1px solid
 </section>
 
 <!-- 市場 -->
-<section class="tab" id="tab-market">
+<section class="tab legacy" id="tab-market">
   <div class="seg" id="mkSeg">
     <button data-v="list" class="on">排行</button>
     <button data-v="heat">熱力</button>
@@ -266,23 +259,40 @@ textarea{font:inherit;color:var(--text);background:var(--card2);border:1px solid
 
 <!-- 持倉 -->
 <section class="tab" id="tab-hold">
+  <h2 style="margin-top:0">總曝險 <small>所有部位加起來</small></h2>
+  <div class="card" id="expoCard"></div>
+  <h2>要處理 <small>持倉出現的出場訊號</small></h2>
+  <div class="card" id="todoList"><div class="empty">載入中…</div></div>
+  <h2>交易計畫 <small>先算好風險再下單</small><span class="sp"></span><button class="btn sm" id="newPlanBtn">＋ 新計畫</button></h2>
+  <div class="card" id="riskSum"></div>
+  <div id="planList"></div>
+  <h2>持倉與自選 <span class="sp"></span><button class="btn ghost sm" id="addCoinBtn">＋ 加密</button><button class="btn ghost sm" id="addUsBtn">＋ 美股</button></h2>
   <div class="grid2" id="holdSum"></div>
-  <h2>加密貨幣 <span class="sp"></span><button class="btn ghost sm" id="addCoinBtn">＋ 加入</button></h2>
-  <div class="card" id="holdCrypto"><div class="empty">載入中…</div></div>
-  <h2>美股 <span class="sp"></span><button class="btn ghost sm" id="addUsBtn">＋ 加入</button></h2>
-  <div class="card" id="holdUS"></div>
-  <p class="note" style="margin-top:8px">點一下可看 K 線；按「編輯」填入數量與成本，就會計算損益。操作提示依月線 MA20、季線 MA60、5／10 日線與跳空缺口自動判讀。</p>
+  <div class="card" id="holdCrypto" style="margin-top:8px"><div class="empty">載入中…</div></div>
+  <div class="card" id="holdUS" style="margin-top:8px"></div>
+  <p class="note" style="margin-top:8px">點一下看 K 線；按「編輯」填入數量與成本就會計算損益。建議用「交易計畫」記錄部位，才有停損與風險計算。</p>
+  <div class="flex" style="margin-top:10px;flex-wrap:wrap"><button class="btn ghost sm" id="exportWl">自選清單匯出到 TradingView</button><button class="btn ghost sm" id="copyWl">複製清單</button></div>
+</section>
+
+<!-- 復盤 -->
+<section class="tab" id="tab-review">
+  <h2 style="margin-top:0">本週檢討 <small>過去 7 天</small></h2>
+  <div class="card" id="weekCard"></div>
+  <h2>訊號成績單 <small>篩選器 70 分以上的訊號，後來真的有漲（跌）嗎</small></h2>
+  <div class="card" id="sigCard"></div>
+  <h2>交易日誌 <small>全部平倉紀錄統計</small><span class="sp"></span><button class="btn ghost sm" id="csvBtn">匯出 CSV</button></h2>
+  <div id="journal"></div>
+  <h2>已平倉 <small>最近 30 筆</small></h2>
+  <div id="closedList"></div>
 </section>
 
 </main>
 
 <nav><div class="in">
-  <button data-tab="today" class="on"><i>⚑</i>作戰</button>
-  <button data-tab="scan"><i>⌕</i>篩選</button>
-  <button data-tab="health"><i>◉</i>體檢</button>
-  <button data-tab="whale"><i>🐋</i>巨鯨</button>
-  <button data-tab="market"><i>₿</i>市場</button>
-  <button data-tab="hold"><i>▤</i>持倉<span class="dot" id="todoDot" style="display:none"></span></button>
+  <button data-tab="today" class="on"><i>⚑</i>今日</button>
+  <button data-tab="scan"><i>⌕</i>機會</button>
+  <button data-tab="hold"><i>▤</i>部位<span class="dot" id="todoDot" style="display:none"></span></button>
+  <button data-tab="review"><i>✎</i>復盤</button>
 </div></nav>
 
 <div class="modal" id="modal"><div class="sheet" id="sheet"></div></div>
@@ -1132,10 +1142,10 @@ function coinPrice(id) {
 function todoOf(s, held) { return s && (s.fresh || (held && (s.adv.c === 'down' || s.adv.c === 'warn'))); }
 function renderHold() {
   let tot = 0, cost = 0, cv = 0, uv = 0, todo = 0;
-  const todoRows = state.todoRows = [];
+  const todoRows = state.todoRows = []; state.holdExpo = [];
   const cr = state.wl.crypto.map(it => {
     const k = 'c:' + it.id, p = coinPrice(it.id), s = signals(state.bars[it.id]), pl = holdPL(k, p.px);
-    if (pl) { tot += pl.val; cv += pl.val; if (pl.cost != null) cost += pl.cost; }
+    if (pl) { state.holdExpo.push({ kind: 'c', sym: it.sym.toUpperCase(), val: pl.val }); tot += pl.val; cv += pl.val; if (pl.cost != null) cost += pl.cost; }
     if (todoOf(s, !!pl)) { todo++; todoRows.push({ kind: 'coin', key: it.id, name: it.sym.toUpperCase(), s, pl }); }
     const wf = state.whale?.flow?.find(x => x.coin === it.sym.toUpperCase());
     return `<div class="row" data-coin="${esc(it.id)}"><div class="nm"><b>${esc(it.sym.toUpperCase())} ${s?.fresh ? `<span class="act ${s.fresh.c}">${s.fresh.t}</span>` : ''}</b>
@@ -1146,7 +1156,7 @@ function renderHold() {
   $('#holdCrypto').innerHTML = cr.join('') || '<div class="empty">還沒有加密貨幣，按「＋ 加入」</div>';
   const us = state.wl.us.map(sym => {
     const k = 'u:' + sym, s = signals(state.usBars[sym]), pl = holdPL(k, s?.last), err = state.errors['td_' + sym];
-    if (pl) { tot += pl.val; uv += pl.val; if (pl.cost != null) cost += pl.cost; }
+    if (pl) { state.holdExpo.push({ kind: 'u', sym, val: pl.val }); tot += pl.val; uv += pl.val; if (pl.cost != null) cost += pl.cost; }
     if (todoOf(s, !!pl)) { todo++; todoRows.push({ kind: 'us', key: sym, name: sym, s, pl }); }
     return `<div class="row" data-us="${esc(sym)}"><div class="nm"><b>${esc(sym)} ${s?.fresh ? `<span class="act ${s.fresh.c}">${s.fresh.t}</span>` : ''}</b>
       <span>${s ? '5日 ' + fmt.pct(s.chg5) + ' · 20日 ' + fmt.pct(s.chg20) : esc(err || (state.set.tdKey ? '載入中…' : '需要 Twelve Data API key'))}</span>
@@ -1486,7 +1496,7 @@ function openPlan(pre = {}, bars) {
         <span>最多虧損</span><b class="down">${fmt.big(o.riskAmt)}</b><span>需要資金</span><b>${fmt.big(o.margin)}</b>
         <span>停損距離</span><b>${o.stopPct.toFixed(2)}%</b><span>風險報酬比</span><b>${o.rr ? '1 : ' + o.rr.toFixed(1) : '—'}</b>
         ${o.liq ? `<span>估算強平價</span><b>${fmt.price(o.liq)}</b><span></span><b></b>` : ''}</div>
-        ${o.warn.map(w => `<div class="warnl">⚠ ${esc(w)}</div>`).join('')}`
+        ${o.warn.map(w => `<div class="warnl">⚠ ${esc(w)}</div>`).join('')}${checksHtml(preTradeChecks(q, o))}`
       : `<div class="note">${esc(o.warn[0] || '填入進場價與停損價，就會算出該買多少')}</div>`;
   };
   ['pSym', 'pLev', 'pEntry', 'pStop', 'pTarget', 'pAcct', 'pRisk'].forEach(id => $('#' + id).oninput = upd);
@@ -1497,7 +1507,7 @@ function openPlan(pre = {}, bars) {
     if (!q.sym) return toast('請填寫標的');
     if (!o.ok) return toast(o.warn[0] || '請確認價格');
     state.plans.unshift({ ...q, pid: Date.now().toString(36), qty: o.qty, riskAmt: o.riskAmt, rr: o.rr ?? null, liq: o.liq ?? null, regime: computeRegime()?.label || null, status: 'plan', created: Date.now() });
-    savePlans(); closeModal(); goTab('today'); toast('計畫已儲存');
+    savePlans(); closeModal(); goTab('hold'); toast('計畫已儲存');
   };
 }
 function planAction(act, pid) {
@@ -1555,7 +1565,8 @@ function renderToday() {
     return `<div class="ev"><div class="d">${(e.utc ? e.t.getUTCMonth() : e.t.getMonth()) + 1}/${e.utc ? e.t.getUTCDate() : e.t.getDate()}<small>週${'日一二三四五六'[e.utc ? e.t.getUTCDay() : e.t.getDay()]} · ${days <= 0 ? '今天' : days + ' 天後'}</small></div><div><b>${e.name}</b><div class="note">${e.note} · ${e.time}</div></div></div>`;
   }).join('') + earnRows() + '<p class="note" style="margin-top:6px">' + (state.set.tdKey ? '' : '加上 Twelve Data key 後，會顯示自選美股的財報日。') + '到期前後常出現劇烈波動。下方是美國經濟數據日曆（CPI、FOMC、非農等）。</p>';
   const ae = document.activeElement;
-  if (ae && $('#tab-today').contains(ae) && /INPUT|TEXTAREA/.test(ae.tagName)) return; // 使用者正在輸入，不重畫
+  renderExposure(); if (currentTab === 'review') renderReview();
+  if (ae && $('main').contains(ae) && /INPUT|TEXTAREA/.test(ae.tagName)) return; // 使用者正在輸入，不重畫
   const open = state.plans.filter(p => p.status === 'open'), openRisk = open.reduce((s, p) => s + (p.riskAmt || 0), 0);
   $('#riskSum').innerHTML = `<div class="grid2">
       <div class="field"><label>帳戶資金（USD）</label><input id="rAcct" type="number" value="${state.risk.acct}"></div>
@@ -1567,9 +1578,9 @@ function renderToday() {
     state.risk.acct = +$('#rAcct').value || 10000; state.risk.riskPct = +$('#rRisk').value || 1; state.risk.dayPct = +$('#rDay').value || 3;
     saveRisk(); $('#rDay').blur(); renderToday();
   });
-  const list = [...state.plans.filter(p => p.status !== 'closed'), ...state.plans.filter(p => p.status === 'closed').slice(0, 10)];
+  const list = state.plans.filter(p => p.status !== 'closed');
   $('#planList').innerHTML = list.length ? list.map(planCard).join('')
-    : '<div class="card empty" style="margin-top:8px">還沒有交易計畫。在任一檔的詳細頁按「擬定交易計畫」，或按上方「＋ 新計畫」。</div>';
+    : '<div class="card empty" style="margin-top:8px">沒有進行中的計畫。在任一檔的詳細頁按「擬定交易計畫」，或按上方「＋ 新計畫」。平倉後的紀錄在「復盤」。</div>';
 }
 
 // Pine Script 產生器
@@ -1700,6 +1711,7 @@ async function loadScreener(view, force) {
     else await buildSectors(note);
   } catch (e) { state.scr[view] = { t: Date.now(), rows: [], err: e.message }; }
   scrBusy[view] = false;
+  if (view !== 'sec') logSignals();
   renderScreener(); renderToday();
 }
 async function buildCrypto(note) {
@@ -1761,7 +1773,11 @@ async function buildSectors(note) {
 
 function renderScreener() {
   const out = $('#scrOut'); if (!out) return;
-  $('#scrCtl').style.display = scrView === 'sec' ? 'none' : '';
+  const wv = scrView === 'whale';
+  $('#oppWhale').style.display = wv ? '' : 'none'; out.style.display = wv ? 'none' : ''; $('#scrNote').style.display = wv ? 'none' : '';
+  $('#scrCtl').style.display = scrView === 'c' || scrView === 'u' ? '' : 'none';
+  if (wv) return;
+  if (scrView === 'crowd') return renderCrowd();
   const S = state.scr[scrView];
   if (!S) { out.innerHTML = '<div class="empty">載入中…</div>'; return; }
   if (S.err) { out.innerHTML = `<div class="err">讀取失敗：${esc(S.err)}</div>`; return; }
@@ -2165,6 +2181,131 @@ function renderSession() {
   el.innerHTML = `<span class="sdot ${s.c}"></span><b>${s.t}</b><span class="note">${s.d}</span><span class="sp"></span><span class="note">台北 ${tw}${s.k !== 'closed' ? '' : ''}</span>`;
 }
 
+/* ================= 部位：總曝險 ================= */
+function exposure() {
+  const L = [];
+  state.plans.filter(p => p.status === 'open').forEach(p => {
+    const px = livePx(p.kind, p.sym) || p.entry, sg = p.dir === 'long' ? 1 : -1;
+    const risk = Math.max(0, (px - p.stop) * sg * p.qty);
+    L.push({ src: '計畫', kind: p.kind, sym: p.sym, val: sg * px * p.qty, risk, stop: true });
+  });
+  (state.holdExpo || []).forEach(h => {
+    if (L.some(x => x.kind === h.kind && x.sym === h.sym)) return; // 已在計畫裡，不重複計算
+    L.push({ src: '持倉', kind: h.kind, sym: h.sym, val: h.val, risk: h.val, stop: false });
+  });
+  const sum = f => L.filter(f).reduce((s, x) => s + x.val, 0);
+  const c = sum(x => x.kind === 'c'), u = sum(x => x.kind === 'u');
+  const gross = L.reduce((s, x) => s + Math.abs(x.val), 0), risk = L.filter(x => x.stop).reduce((s, x) => s + x.risk, 0);
+  return { L, c, u, net: c + u, gross, risk, noStop: L.filter(x => !x.stop), btc10: -0.1 * c, ndx5: -0.05 * 1.5 * u };
+}
+function renderExposure() {
+  const el = $('#expoCard'); if (!el) return;
+  const E = exposure(), A = state.risk.acct || 1, maxHeat = 6;
+  if (!E.L.length) { el.innerHTML = '<div class="empty">目前沒有部位。計畫按「已進場」，或在下方持倉填入數量，就會計算總曝險。</div>'; return; }
+  const heat = E.risk / A * 100, lev = E.gross / A;
+  const kc = (l, v, c = '') => `<div class="kcard"><div class="l">${l}</div><div class="v num ${c}">${v}</div></div>`;
+  el.innerHTML = `<div class="grid2">${kc('淨部位', (E.net >= 0 ? '淨多 ' : '淨空 ') + fmt.big(Math.abs(E.net)), E.net >= 0 ? 'up' : 'down')}${kc('總曝險／帳戶', lev.toFixed(1) + ' 倍', lev > 2 ? 'warn' : '')}
+      ${kc('有停損部位的總風險', fmt.big(E.risk) + `（${heat.toFixed(1)}%）`, heat > maxHeat ? 'down' : '')}${kc('加密／美股', `${fmt.sbig(E.c)} ／ ${fmt.sbig(E.u)}`)}</div>
+    <div class="note" style="margin-top:8px">壓力測試（估算）：BTC 跌 10%，加密部位約 <b class="${cls(E.btc10)}">${fmt.sbig(E.btc10)}</b>；那斯達克跌 5%，美股部位約 <b class="${cls(E.ndx5)}">${fmt.sbig(E.ndx5)}</b>（個股以 1.5 倍波動估）。加密和美科技股常同漲同跌，兩邊同時做多不算分散。</div>
+    ${heat > maxHeat ? `<div class="warnl">⚠ 總風險超過帳戶 ${maxHeat}%，先別再開新倉</div>` : ''}
+    ${E.noStop.length ? `<div class="warnl">⚠ ${E.noStop.map(x => esc(x.sym)).join('、')} 沒有設停損（只在持倉清單），風險無法估算</div>` : ''}`;
+}
+// 下單前檢查：回傳 [{ok, t}]
+function preTradeChecks(q, o) {
+  const E = exposure(), A = state.risk.acct || 1, R = computeRegime(), out = [];
+  const heat = (E.risk + (o.riskAmt || 0)) / A * 100;
+  out.push({ ok: heat <= 6, t: `加上這筆，總風險 ${heat.toFixed(1)}%（上限 6%）` });
+  const same = E.L.filter(x => x.kind === q.kind && Math.sign(x.val) === (q.dir === 'long' ? 1 : -1));
+  out.push({ ok: same.length < 3, t: same.length ? `已有 ${same.length} 個同市場同方向部位（${same.map(x => esc(x.sym)).slice(0, 4).join('、')}），高度連動` : '沒有同方向的重疊部位' });
+  if (R) out.push({ ok: !(R.lvl === 'def' && q.dir === 'long'), t: R.lvl === 'def' && q.dir === 'long' ? '環境是防守，做多請縮小部位' : `環境燈號：${R.label}` });
+  const ex = expiries().find(e => (e.t - Date.now()) / 36e5 < 24 && e.t > Date.now());
+  out.push({ ok: !ex, t: ex ? `24 小時內有 ${ex.name}，波動可能放大` : '24 小時內沒有選擇權大到期' });
+  const ev = q.kind === 'u' && nextEarning(q.sym);
+  if (ev && ev.days <= 5) out.push({ ok: false, t: `${esc(q.sym)} 財報 ${ev.days} 天後，跳空風險` });
+  out.push({ ok: !lockState().locked, t: lockState().locked ? '今天已達每日最大虧損' : '今日虧損未達上限' });
+  return out;
+}
+const checksHtml = C => `<div style="margin-top:8px"><b style="font-size:13px">下單前檢查</b>${C.map(c => `<div class="note" style="color:${c.ok ? 'var(--mute)' : 'var(--accent)'}">${c.ok ? '✓' : '✗'} ${c.t}</div>`).join('')}</div>`;
+
+/* ================= 機會：擁擠交易 ================= */
+function renderCrowd() {
+  const out = $('#scrOut'), S = state.scr.c;
+  $('#scrNote').innerHTML = '資金費率是多空雙方互付的利息：正值＝做多的人付錢（多單擁擠），負值＝做空的人付錢（空單擁擠）。費率極端又搭配未平倉量（OI）大增，代表槓桿堆積，容易出現反向的強平連鎖（軋空或多殺多）。費率為每 8 小時。';
+  if (!S) { out.innerHTML = '<div class="empty"><span class="spin">⟳</span> 先掃描加密貨幣…</div>'; loadScreener('c'); return; }
+  const rows = S.rows.filter(r => r.fund != null && r.m);
+  const longC = rows.filter(r => r.fund >= 0.02 || (r.fund > 0.01 && (r.oi7 ?? 0) > 20)).sort((a, b) => b.fund - a.fund);
+  const shortC = rows.filter(r => r.fund <= -0.005).sort((a, b) => a.fund - b.fund);
+  const row = (r, side) => `<div class="row" data-coin="${esc(r.id)}"><div class="nm"><b>${esc(r.sym)} <span class="act ${side === 'L' ? 'down' : 'up'}">${side === 'L' ? '多單擁擠' : '空單擁擠'}</span></b>
+      <span>資金費率 <b class="${r.fund > 0 ? 'down' : 'up'}">${r.fund.toFixed(4)}%</b>${r.oi7 != null ? ` · OI 7 日 ${fmt.pct(r.oi7, 0)}` : ''} · 7 日 ${fmt.pct(r.m.c7, 1)}</span><br>
+      <span class="note">${side === 'L' ? (r.m.c7 > 0 ? '追高的多單很多，回檔時可能多殺多' : '價格沒漲多單卻在加，偏危險') : (r.m.c7 < 0 ? '追空的人很多，反彈時可能軋空' : '價格沒跌空單卻在加，留意軋空')}</span></div>
+      <div class="px num"><div>${fmt.price(r.m.last)}</div><div class="${cls(r.m.chg1)}">${fmt.pct(r.m.chg1)}</div><div style="margin-top:4px">${tvBtn('c', r.sym)}</div></div></div>`;
+  out.innerHTML = `<h2 style="margin-top:0">空單擁擠 <small>軋空候選</small></h2>${shortC.length ? shortC.slice(0, 10).map(r => row(r, 'S')).join('') : '<div class="empty">目前沒有明顯的空單擁擠</div>'}
+    <h2>多單擁擠 <small>回檔風險</small></h2>${longC.length ? longC.slice(0, 10).map(r => row(r, 'L')).join('') : '<div class="empty">目前沒有明顯的多單擁擠</div>'}`;
+}
+
+/* ================= 復盤：訊號成績單 ================= */
+state.sigs = store.get('sigs', []);
+function logSignals() {
+  const d = todayKey(); let add = 0;
+  [...(state.scr.c?.rows || []), ...(state.scr.u?.rows || [])].filter(r => r.m && r.m.last).forEach(r => {
+    [['long', r.score, r.m.pats], ['short', r.scoreS, r.m.spats]].forEach(([dir, sc, pats]) => {
+      if (!(sc >= 70)) return;
+      if (state.sigs.some(s => s.d === d && s.kind === r.kind && s.sym === r.sym && s.dir === dir)) return;
+      state.sigs.push({ d, t: Date.now(), kind: r.kind, sym: r.sym, dir, sc, px: r.m.last, pat: pats[0] || '綜合' }); add++;
+    });
+  });
+  const cut = Date.now() - 120 * 864e5;
+  state.sigs = state.sigs.filter(s => s.t > cut);
+  if (add) store.set('sigs', state.sigs);
+}
+function sigOutcomes() {
+  const rowOf = (k, s) => state.scr[k]?.rows.find(r => r.sym === s);
+  return state.sigs.map(s => {
+    const b = rowOf(s.kind, s.sym)?.bars; if (!b || !b.length) return { ...s };
+    const t0 = s.t / 1000, o = { ...s };
+    [3, 5, 10].forEach(k => { const bar = b.find(x => x.t >= t0 + k * 86400 - 3600); if (bar) o['r' + k] = (bar.c / s.px - 1) * 100 * (s.dir === 'long' ? 1 : -1); });
+    return o;
+  });
+}
+function renderSignals() {
+  const el = $('#sigCard'); if (!el) return;
+  const O = sigOutcomes(), N = state.sigs.length;
+  if (!N) { el.innerHTML = '<div class="empty">還沒有紀錄。每天篩選器掃描後，會自動記下 70 分以上的訊號，之後追蹤 3／5／10 天的實際漲跌。</div>'; return; }
+  const first = Math.min(...state.sigs.map(s => s.t)), days = Math.floor((Date.now() - first) / 864e5);
+  const agg = (list, k) => { const v = list.map(x => x['r' + k]).filter(x => x != null); return v.length ? { n: v.length, wr: v.filter(x => x > 0).length / v.length * 100, avg: v.reduce((a, b) => a + b, 0) / v.length } : null; };
+  const cell = a => a ? `<td class="num"><b class="${a.wr >= 55 ? 'up' : a.wr < 45 ? 'down' : ''}">${a.wr.toFixed(0)}%</b> <span class="mute">${fmt.pct(a.avg, 1)} · ${a.n}</span></td>` : '<td class="mute">—</td>';
+  const groups = {}; O.forEach(o => { const g = `${o.kind === 'u' ? '美股' : '加密'} ${o.dir === 'long' ? '做多' : '做空'} · ${o.pat}`; (groups[g] = groups[g] || []).push(o); });
+  const G = Object.entries(groups).filter(([, v]) => v.some(x => x.r5 != null)).sort((a, b) => b[1].length - a[1].length);
+  const all5 = agg(O, 5);
+  el.innerHTML = `<div class="note">已記錄 ${N} 筆訊號，最早 ${days} 天前。${all5 ? `整體 5 天後勝率 <b style="color:var(--text)">${all5.wr.toFixed(0)}%</b>、平均 ${fmt.pct(all5.avg, 1)}（已計入做空方向）。` : '要等訊號滿 3 天才有第一批結果。'}</div>
+    ${G.length ? `<table style="margin-top:8px"><thead><tr><th>訊號類型</th><th>3 天</th><th>5 天</th><th>10 天</th></tr></thead><tbody>${G.map(([g, v]) => `<tr><td>${esc(g)}</td>${cell(agg(v, 3))}${cell(agg(v, 5))}${cell(agg(v, 10))}</tr>`).join('')}</tbody></table>
+    <p class="note" style="margin-top:6px">格式：勝率　平均報酬 · 樣本數。樣本少於 20 筆前只當參考；勝率長期低於 45% 的型態，就該降低信任或不做。</p>` : ''}`;
+}
+
+/* ================= 復盤：每週檢討 ================= */
+function renderWeek() {
+  const el = $('#weekCard'); if (!el) return;
+  const since = Date.now() - 7 * 864e5;
+  const C = state.plans.filter(p => p.status === 'closed' && p.closedAt >= since && p.riskAmt);
+  if (!C.length) { el.innerHTML = '<div class="empty">過去 7 天沒有平倉紀錄。</div>'; return; }
+  const R = p => p.pnl / p.riskAmt, w = C.filter(p => p.pnl > 0), pnl = C.reduce((s, p) => s + p.pnl, 0);
+  const best = [...C].sort((a, b) => R(b) - R(a))[0], worst = [...C].sort((a, b) => R(a) - R(b))[0];
+  const V = [];
+  C.filter(p => R(p) < -1.2).forEach(p => V.push(`${esc(p.sym)} 虧了 ${R(p).toFixed(1)}R，超過原本停損`));
+  C.filter(p => p.regime === '防守' && p.dir === 'long').forEach(p => V.push(`${esc(p.sym)} 在防守環境做多`));
+  C.filter(p => !p.reason).forEach(p => V.push(`${esc(p.sym)} 沒寫進場理由`));
+  const kc = (l, v, c = '') => `<div class="kcard"><div class="l">${l}</div><div class="v num ${c}">${v}</div></div>`;
+  el.innerHTML = `<div class="grid2">${kc('筆數', C.length)}${kc('勝率', (w.length / C.length * 100).toFixed(0) + '%')}${kc('損益', fmt.sbig(pnl), cls(pnl))}${kc('平均', (C.reduce((s, p) => s + R(p), 0) / C.length).toFixed(2) + 'R')}</div>
+    <div class="note" style="margin-top:8px">最好：<b style="color:var(--text)">${esc(best.sym)}</b> ${R(best).toFixed(1)}R · 最差：<b style="color:var(--text)">${esc(worst.sym)}</b> ${R(worst).toFixed(1)}R</div>
+    ${V.length ? `<div style="margin-top:8px"><b style="font-size:13px">違規紀錄（${V.length}）</b>${V.slice(0, 8).map(v => `<div class="warnl">✗ ${v}</div>`).join('')}</div>` : '<div class="note" style="margin-top:8px;color:var(--up)">✓ 這週沒有違規，照計畫執行</div>'}`;
+}
+function renderReview() {
+  renderWeek(); renderSignals(); renderJournal();
+  const el = $('#closedList'); if (!el) return;
+  const C = state.plans.filter(p => p.status === 'closed').slice(0, 30);
+  el.innerHTML = C.length ? C.map(planCard).join('') : '<div class="card empty" style="margin-top:8px">還沒有平倉紀錄</div>';
+}
+
 /* ================= 載入流程 ================= */
 function renderTicker() {
   const items = [], m = state.markets || [];
@@ -2207,7 +2348,7 @@ async function loadAll(force) {
   $('#updated').textContent = '更新 ' + new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' });
   $('#refreshBtn').textContent = '⟳';
   loadUS();
-  if (currentTab === 'whale') loadWhales(force);
+  if (currentTab === 'scan' && scrView === 'whale') loadWhales(force);
   hlCtx('xyz').then(x => { state.hlx = x; }).catch(() => {});
   loadScreener('c', force).then(() => loadScreener('u', force)).then(checkAlerts); loadEarnings(); fillUsFromHL();
   loadNews(force).catch(e => { state.errors.news = '新聞讀取失敗：' + e.message; renderNews(); });
@@ -2217,6 +2358,8 @@ async function loadAll(force) {
 /* ================= 事件 ================= */
 let currentTab = 'today';
 function goTab(t) {
+  if (t === 'whale') scrView = 'whale';
+  t = { health: 'today', market: 'today', whale: 'scan' }[t] || t;
   if (!document.getElementById('tab-' + t)) t = 'today';
   currentTab = t;
   $$('section.tab').forEach(s => s.classList.toggle('on', s.id === 'tab-' + t));
@@ -2225,7 +2368,9 @@ function goTab(t) {
   try { window.scrollTo(0, 0); } catch (e) {}
   if (t === 'whale') loadWhales();
   if (t === 'today') { renderToday(); loadTvCalendar(); }
-  if (t === 'scan') { renderScreener(); loadScreener(scrView); }
+  if (t === 'scan') { renderScreener(); if (scrView === 'whale') loadWhales(); else if (scrView !== 'crowd') loadScreener(scrView); }
+  if (t === 'review') renderReview();
+  if (t === 'hold') renderExposure();
   if (t === 'health' && state.hist) renderTempChart();
 }
 document.addEventListener('click', e => {
@@ -2257,12 +2402,12 @@ document.addEventListener('click', e => {
     if (seg.id === 'whaleSeg') { $('#whaleHL').style.display = v === 'hl' ? '' : 'none'; $('#whaleDEX').style.display = v === 'dex' ? '' : 'none'; $('#whaleBIG').style.display = v === 'big' ? '' : 'none'; if (v === 'big' && !$('#bigOut').innerHTML) scanBig(); }
     if (seg.id === 'whaleSort') { whaleSort = v; loadWhales(); }
     if (seg.id === 'whaleKind') { whaleKind = v; renderWhales(); }
-    if (seg.id === 'scrSeg') { scrView = v; renderScreener(); loadScreener(v); }
+    if (seg.id === 'scrSeg') { scrView = v; renderScreener(); if (v === 'whale') loadWhales(); else if (v !== 'crowd') loadScreener(v); }
     if (seg.id === 'tfSeg') switchTf(v);
   }
 });
 $('#modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
-$('#refreshBtn').onclick = () => { loadAll(true); if (currentTab === 'whale') loadWhales(true); };
+$('#refreshBtn').onclick = () => { loadAll(true); if (currentTab === 'scan' && scrView === 'whale') loadWhales(true); };
 $('#setBtn').onclick = openSettings;
 $('#coinFilter').oninput = renderMarket;
 $('#addCoinBtn').onclick = addCoinSheet;
