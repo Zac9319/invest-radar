@@ -71,6 +71,9 @@ nav .dot{position:absolute;top:4px;left:calc(50% + 6px);min-width:16px;height:16
 .field{margin-bottom:10px}.field label{display:block;font-size:12px;color:var(--mute);margin-bottom:4px}
 .flex{display:flex;gap:8px;align-items:center}
 .note{font-size:12px;color:var(--mute);line-height:1.6}
+.news{padding:9px 2px;border-bottom:1px solid var(--line)}.news:last-of-type{border-bottom:0}.news .nt{color:var(--text);text-decoration:none;font-weight:600;line-height:1.45;display:block}.news .nt:hover{text-decoration:underline}.news .note a{color:var(--accent)}
+.tag.sym{cursor:pointer;color:var(--text)}.tag.sym.on{border-color:var(--accent);color:var(--accent)}
+#sessionBar{display:flex;align-items:center;gap:8px;padding:8px 12px;margin-bottom:10px}.sdot{width:8px;height:8px;border-radius:50%;background:var(--mute);flex:none}.sdot.up{background:var(--up);box-shadow:0 0 0 3px color-mix(in srgb,var(--up) 25%,transparent)}.sdot.warn{background:var(--accent)}
 .empty{padding:20px;text-align:center;color:var(--mute);font-size:13px}
 table{width:100%;border-collapse:collapse;font-size:13px}
 th{color:var(--mute);font-weight:500;text-align:right;padding:6px 4px;font-size:12px}
@@ -141,12 +144,15 @@ textarea{font:inherit;color:var(--text);background:var(--card2);border:1px solid
 <main>
 <!-- 作戰 -->
 <section class="tab" id="tab-today">
+  <div class="card" id="sessionBar"></div>
   <div class="card" id="regimeCard"><div class="empty">計算中…</div></div>
   <div class="alerts" id="lockBanner" style="margin-top:10px"></div>
   <h2>即時提醒</h2>
   <div class="card" id="liveAlerts"></div>
   <h2>今日機會 <small>做多與做空分數前 5 名</small><span class="sp"></span><button class="btn ghost sm" data-tab="scan">完整篩選</button></h2>
   <div class="card" id="oppList"><div class="empty">掃描中…</div></div>
+  <h2>重點新聞 <small>總經、美股、加密 10～20 篇，依重要性排序</small><span class="sp"></span><button class="btn ghost sm" id="newsRefresh">⟳</button></h2>
+  <div class="card" id="newsList"><div class="empty">新聞載入中…</div></div>
   <h2>我的部位要處理 <span class="sp"></span><button class="btn ghost sm" data-tab="hold">全部持倉</button></h2>
   <div class="card" id="todoList"><div class="empty">載入中…</div></div>
   <h2>交易計畫 <small>先算好風險再下單</small><span class="sp"></span><button class="btn sm" id="newPlanBtn">＋ 新計畫</button></h2>
@@ -1043,7 +1049,14 @@ function renderMarket() {
   const el = $('#mkOut'), q = $('#coinFilter').value.trim().toLowerCase();
   const wlIds = new Set(state.wl.crypto.map(c => c.id));
   $('#coinFilter').style.display = mkView === 'list' || mkView === 'heat' ? '' : 'none';
-  if (mkView === 'us' || mkView === 'news') {
+  if (mkView === 'news') {
+    const N = state.news;
+    if (el.dataset.w !== 'news') { el.dataset.w = 'news'; el.innerHTML = '<div id="mkNews"></div><h2>TradingView 即時快訊</h2><div id="tvMk" style="min-height:560px"></div>'; tvWidget($('#tvMk'), 'timeline', { feedMode: 'all_symbols', displayMode: 'regular', height: 560 }); }
+    const L = N ? newsFilter(N.list, newsView) : [];
+    $('#mkNews').innerHTML = N ? newsSegHtml('newsSeg2') + (L.length ? L.slice(0, 40).map(newsRow).join('') : '<div class="empty">這個分類目前沒有新聞</div>') : `<div class="empty">${esc(state.errors.news || '新聞載入中…')}</div>`;
+    return;
+  }
+  if (mkView === 'us') {
     if (el.dataset.w !== mkView) {
       el.dataset.w = mkView;
       el.innerHTML = '<div id="tvMk" style="min-height:540px"></div><p class="note" style="margin-top:6px">由 TradingView 提供。' + (mkView === 'us' ? 'S&P 500 依類股分組，面積＝市值，顏色＝今日漲跌。' : '') + '</p>';
@@ -1251,6 +1264,7 @@ async function openDetail(kind, key) {
     <div class="tags">${(s?.tags || []).map(tagHtml).join('')}</div>
     <div class="meta" style="margin-top:10px;grid-template-columns:1fr auto 1fr auto"><span>MA20 月線</span><b>${fmt.price(s?.m20)}</b><span>MA60 季線</span><b>${fmt.price(s?.m60)}</b><span>MA200 年線</span><b>${fmt.price(s?.m200)}</b><span>RSI(14)</span><b>${s?.rsi != null ? s.rsi.toFixed(1) : '—'}</b></div>
     ${wp || wf ? `<h2>🐋 Hyperliquid 巨鯨</h2><div class="card note">${wp ? `持倉：多 ${fmt.big(wp.long)}（${wp.nL} 人）／空 ${fmt.big(wp.short)}（${wp.nS} 人），淨 <b class="${cls(wp.net)}">${fmt.sbig(wp.net)}</b>` : ''}${wf ? `<br>24h：買 ${fmt.big(wf.buy)}／賣 ${fmt.big(wf.sell)}，淨 <b class="${cls(wf.net)}">${fmt.sbig(wf.net)}</b>` : ''}<br><button class="btn ghost sm" style="margin-top:6px" data-whalecoin="${esc(title)}">看是哪些巨鯨</button></div>` : ''}
+    ${(() => { const NL = newsFor(title); return NL.length ? `<h2>📰 相關新聞</h2><div class="card">${NL.map(newsRow).join('')}</div>` : ''; })()}
     ${inWl ? `<button class="btn ghost sm" style="margin-top:10px" data-edit="${esc(hk)}">編輯持倉數量與成本</button>` : ''}`);
   drawChart($('#dChart'), bars);
   window._detail = { kind, title: title.toUpperCase(), bars };
@@ -1515,6 +1529,7 @@ function planCard(p) {
       <button class="btn ghost sm" data-pact="del" data-id="${p.pid}">刪除</button></div></div>`;
 }
 function renderToday() {
+  renderSession(); renderNews();
   if (!$('#regimeCard')) return;
   const R = computeRegime();
   $('#regimeCard').innerHTML = R ? `<div class="regime"><div class="big ${R.cls}">${R.label}</div><div><div style="font-weight:700">${esc(R.tip)}</div><div class="note">今日市場環境</div></div></div>
@@ -1991,6 +2006,161 @@ function restoreJson(txt) {
   toast('已還原，重新載入中'); setTimeout(() => location.reload(), 800);
 }
 
+/* ================= 重點新聞 ================= */
+const NEWS_FEEDS = [
+  { id: 'cnbc', name: 'CNBC', url: 'https://www.cnbc.com/id/100003114/device/rss/rss.html', w: 1.5, cat: '' },
+  { id: 'cnbcm', name: 'CNBC 市場', url: 'https://www.cnbc.com/id/15839069/device/rss/rss.html', w: 1.5, cat: 'stock' },
+  { id: 'cnbce', name: 'CNBC 經濟', url: 'https://www.cnbc.com/id/20910258/device/rss/rss.html', w: 1.5, cat: 'macro' },
+  { id: 'mw', name: 'MarketWatch', url: 'https://feeds.content.dowjones.io/public/rss/mw_topstories', w: 1.5, cat: '' },
+  { id: 'yahoo', name: 'Yahoo Finance', url: 'https://finance.yahoo.com/news/rssindex', w: 1, cat: '' },
+  { id: 'fed', name: '聯準會', url: 'https://www.federalreserve.gov/feeds/press_all.xml', w: 3, cat: 'macro' },
+  { id: 'coindesk', name: 'CoinDesk', url: 'https://www.coindesk.com/arc/outboundfeeds/rss/', w: 1.5, cat: 'crypto' },
+  { id: 'ct', name: 'Cointelegraph', url: 'https://cointelegraph.com/rss', w: 1, cat: 'crypto' },
+  { id: 'ytw', name: 'Yahoo 奇摩股市', url: 'https://tw.stock.yahoo.com/rss?category=intl-markets', w: 1.5, cat: '', zh: 1 },
+  { id: 'abm', name: '鏈新聞', url: 'https://abmedia.io/feed', w: 1, cat: 'crypto', zh: 1 },
+  { id: 'bt', name: '動區動趨', url: 'https://www.blocktempo.com/feed/', w: 1, cat: 'crypto', zh: 1 }
+];
+const NEWS_KW = [
+  // [正則, 分數, 類別]
+  [/\b(fed|fomc|powell|federal reserve|rate cuts?|rate hikes?|interest rates?|basis points?)\b|聯準會|鮑爾|降息|升息|利率決策|FOMC/i, 4, 'macro'],
+  [/\b(cpi|pce|payrolls?|jobs report|fomc statement|fomc minutes)\b|非農|消費者物價|CPI|PCE/i, 6, 'macro'],
+  [/\b(inflation|jobless|unemployment|gdp|recession|retail sales|ism)\b|通膨|就業|失業率|衰退|物價/i, 3, 'macro'],
+  [/\b(hotter|cooler|weaker|stronger) than expected|\bsurpris\w*|unexpected\w*|高於預期|低於預期|意外/i, 2, ''],
+  [/\b(treasury|yields?|bonds?|dollar|tariffs?|trade war|shutdown|debt ceiling|sanctions?)\b|美債|殖利率|美元指數|強勢美元|弱勢美元|關稅|貿易戰|停擺|制裁/i, 3, 'macro'],
+  [/\b(oil|opec|gold|crude)\b|原油|油價|黃金/i, 2, 'macro'],
+  [/\b(earnings|revenue|guidance|forecast|outlook|quarterly|profit|beats?|miss(es)?|ipo|buyback|layoffs?|acquisition|merger|deal)\b|財報|營收|財測|獲利|IPO|首次公開發行|併購|收購|裁員|回購/i, 3, 'stock'],
+  [/\b(s&p 500|s&p|nasdaq|dow|stocks?|shares|wall street|equities|rally|sell-?off)\b|美股|道瓊|標普|那斯達克|費半|台積電|輝達/i, 2, 'stock'],
+  [/\b(bitcoin|btc|ether(eum)?|crypto|stablecoins?|blockchain|solana|xrp|defi|token)\b|比特幣|以太|加密|穩定幣|區塊鏈|代幣/i, 2, 'crypto'],
+  [/\b(sec|etf|cftc|regulat\w*|lawsuit|approv\w*|ban|hack(ed)?|exploit|liquidat\w*|bankrupt\w*|treasury company)\b|監管|訴訟|核准|駭客|清算|破產|ETF/i, 3, ''],
+  [/\b(plunge[sd]?|soar(s|ed)?|surge[sd]?|tumble[sd]?|crash(es|ed)?|slump(s|ed)?|record|all-time high|biggest|worst|best day|rout)\b|暴跌|暴漲|大漲|大跌|重挫|創新高|新低|崩/i, 3, ''],
+  [/\b(ai|chips?|semiconductor|data cent(er|re)s?|nvidia|openai)\b|晶片|半導體|人工智慧|AI/i, 1, 'stock']
+];
+const NEWS_NEG = /\b(mortgage rates?|credit cards?|savings accounts?|cd rates|personal loans?|horoscope|recipe|quiz|podcast|affair|dating|celebrity|sponsored|how to (buy|save)|best \w+ (cards?|accounts?))\b|業配|贊助|抽獎|星座/i;
+const NEWS_NAMES = {
+  NVDA: /nvidia|輝達|黃仁勳/i, TSLA: /tesla|特斯拉|musk|馬斯克/i, AAPL: /\bapple\b|蘋果/i, MSFT: /microsoft|微軟/i, AMZN: /amazon|亞馬遜/i,
+  GOOGL: /alphabet|google|谷歌/i, META: /\bmeta\b|facebook|臉書/i, AMD: /\bamd\b|超微/i, AVGO: /broadcom|博通/i, MSTR: /microstrategy|\bstrategy\b|saylor/i,
+  COIN: /coinbase/i, TSM: /tsmc|台積電/i, NFLX: /netflix|網飛/i, PLTR: /palantir/i, INTC: /\bintel\b|英特爾/i, MU: /micron|美光/i, ORCL: /oracle|甲骨文/i,
+  HOOD: /robinhood/i, ARM: /\barm holdings\b/i, LLY: /eli lilly|禮來/i, COST: /costco|好市多/i, CRWV: /coreweave/i, QCOM: /qualcomm|高通/i,
+  BTC: /bitcoin|比特幣|\bbtc\b/i, ETH: /ether(eum)?\b|以太/i, SOL: /solana|\bsol\b/i, XRP: /\bxrp\b|ripple|瑞波/i, DOGE: /dogecoin|狗狗幣|\bdoge\b/i,
+  BNB: /\bbnb\b|binance|幣安/i, HYPE: /hyperliquid|\bhype\b/i, USDT: /tether|\busdt\b/i
+};
+const NEWS_CRYPTO = new Set(['BTC', 'ETH', 'SOL', 'XRP', 'DOGE', 'BNB', 'HYPE', 'USDT']);
+let newsView = 'all', newsMore = false;
+
+function newsTokens(t) {
+  const s = t.toLowerCase(), out = new Set();
+  (s.match(/[a-z0-9]{3,}/g) || []).forEach(w => { if (!/^(the|and|for|with|from|that|this|after|over|into|amid|says?|said|will|its|are|was|has|have|new|how|why|what)$/.test(w)) out.add(w); });
+  const cjk = s.replace(/[^一-鿿]/g, '');
+  for (let i = 0; i < cjk.length - 1; i++) out.add(cjk.slice(i, i + 2));
+  return out;
+}
+function newsSim(a, b) { let n = 0; a.forEach(x => { if (b.has(x)) n++; }); return n / Math.max(1, Math.min(a.size, b.size)); }
+function newsMine() {
+  const s = new Set([...state.wl.us, ...state.wl.crypto.map(c => c.sym.toUpperCase())]);
+  (state.plans || []).filter(p => p.status !== 'closed').forEach(p => s.add(p.sym.toUpperCase()));
+  return s;
+}
+function newsSyms(title) {
+  const out = new Set();
+  Object.entries(NEWS_NAMES).forEach(([k, re]) => { if (re.test(title)) out.add(k); });
+  // 標題中的大寫代號（只認自選與篩選池，避免誤判一般英文字）
+  const pool = new Set([...US_POOL, ...state.wl.us, ...state.wl.crypto.map(c => c.sym.toUpperCase())]);
+  (title.match(/\b[A-Z]{2,5}\b/g) || []).forEach(w => { if (pool.has(w) && !/^(AI|CEO|ETF|SEC|FED|GDP|CPI|IPO|USA|NET|ARM)$/.test(w)) out.add(w); });
+  (title.match(/\$[A-Z]{2,6}\b/g) || []).forEach(w => out.add(w.slice(1)));
+  return [...out];
+}
+async function loadNews(force) {
+  const res = await Promise.all(NEWS_FEEDS.map(f => getJSON('https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(f.url), force ? 0 : 10 * 60e3, true)
+    .then(j => (j.items || []).map(it => ({ f, title: (it.title || '').replace(/\s+/g, ' ').trim(), link: it.link, t: Date.parse((it.pubDate || '').replace(' ', 'T') + 'Z') || Date.now() })))
+    .catch(() => [])));
+  const ok = res.filter(r => r.length).length;
+  if (!ok) { state.errors.news = '新聞來源暫時讀不到，稍後再試'; renderNews(); return; }
+  const mine = newsMine(), now = Date.now();
+  const raw = res.flat().filter(x => x.title && x.link && now - x.t < 7 * 864e5);
+  const clusters = [];
+  raw.sort((a, b) => b.t - a.t).forEach(x => {
+    x.tok = newsTokens(x.title);
+    const c = clusters.find(c => newsSim(c.tok, x.tok) >= 0.6);
+    if (c) { if (!c.src.includes(x.f.name)) c.src.push(x.f.name); if (x.f.w > c.f.w && !x.f.zh === !c.f.zh) Object.assign(c, { title: x.title, link: x.link, f: x.f }); c.t = Math.max(c.t, x.t); }
+    else clusters.push({ ...x, src: [x.f.name] });
+  });
+  clusters.forEach(c => { c.syms = newsSyms(c.title); });
+  for (const z of clusters.filter(c => c.f.zh && c.syms.length)) {
+    const en = clusters.find(c => !c.f.zh && !c.zhOf && c.syms.some(s => z.syms.includes(s)) && Math.abs(c.t - z.t) < 12 * 36e5 && newsSim(newsTokens(c.f.cat || ''), newsTokens(z.f.cat || '')) >= 0 && c !== z);
+    if (en && !en.zh) { en.zh = { title: z.title, link: z.link, src: z.f.name }; en.src.push(z.f.name); z.drop = 1; }
+  }
+  for (let i = clusters.length - 1; i >= 0; i--) if (clusters[i].drop) clusters.splice(i, 1);
+  clusters.forEach(c => {
+    let sc = c.f.w; const cats = new Set(c.f.cat ? [c.f.cat] : []), hits = [];
+    NEWS_KW.forEach(([re, w, cat]) => { const m = c.title.match(re); if (m) { sc += w; if (cat) cats.add(cat); hits.push(m[0]); } });
+    c.syms.forEach(s => cats.add(NEWS_CRYPTO.has(s) || state.wl.crypto.some(x => x.sym.toUpperCase() === s) ? 'crypto' : 'stock'));
+    c.mine = c.syms.filter(s => mine.has(s));
+    if (c.mine.length) sc += 4;
+    if (c.src.length > 1) sc += 2.5 * (c.src.length - 1);
+    if (NEWS_NEG.test(c.title)) sc -= 8;
+    if (c.f.id === 'fed') sc += /\b(statement|minutes|fomc|policy|rate|speech|testimony|projections)\b/i.test(c.title) ? 4 : -6;
+    const hrs = (now - c.t) / 36e5;
+    sc -= hrs <= 6 ? 0 : hrs <= 24 ? (hrs - 6) * 0.12 : 2.2 + (hrs - 24) * 0.15;
+    c.score = Math.round(sc * 10) / 10; c.cats = [...cats]; c.hits = hits; c.hot = sc >= 11;
+  });
+  let list = clusters.filter(c => c.score > 1).sort((a, b) => b.score - a.score);
+  const recent = list.filter(c => now - c.t < 48 * 36e5);
+  if (recent.length >= 10) list = recent;
+  state.news = { list, at: now, sources: ok };
+  delete state.errors.news;
+  renderNews();
+  // 重大新聞提醒：2 小時內、分數高且（跟自選有關或屬於總經）
+  list.filter(c => now - c.t < 2 * 36e5 && c.score >= 11 && (c.mine.length || c.cats.includes('macro'))).slice(0, 3)
+    .forEach(c => notify('📰 ' + (c.mine.length ? c.mine.join('、') + '：' : '') + c.title.slice(0, 80), c.src.join('、'), 'news:' + c.title.slice(0, 60)));
+}
+function newsFilter(list, v) {
+  const mine = newsMine();
+  if (v === 'mine') return list.filter(c => c.syms.some(s => mine.has(s)));
+  if (v === 'zh') return list.filter(c => c.f.zh || c.zh);
+  return v === 'all' ? list : list.filter(c => c.cats.includes(v));
+}
+function newsRow(c) {
+  const tr = c.f.zh ? '' : ` · <a href="https://translate.google.com/?sl=auto&tl=zh-TW&op=translate&text=${encodeURIComponent(c.title)}" target="_blank" rel="noopener">翻譯</a>`;
+  const catName = { macro: '總經', stock: '美股', crypto: '加密' };
+  return `<div class="news"><a class="nt" href="${esc(c.link)}" target="_blank" rel="noopener">${c.hot ? '<span class="act down">重要</span> ' : ''}${esc(c.title)}</a>
+    ${c.zh ? `<a class="note" style="display:block;margin-top:2px;color:var(--text)" href="${esc(c.zh.link)}" target="_blank" rel="noopener">中文：${esc(c.zh.title)}</a>` : ''}
+    <div class="note">${esc(c.src.join('、'))}${c.src.length > 1 ? ` <b>· ${c.src.length} 家報導</b>` : ''} · ${fmt.ago(c.t)}${tr}</div>
+    <div class="tags" style="margin-top:4px">${c.cats.map(x => `<span class="tag">${catName[x] || x}</span>`).join('')}${c.syms.map(s => `<span class="tag sym ${c.mine.includes(s) ? 'on' : ''}" ${NEWS_CRYPTO.has(s) || state.wl.crypto.some(x => x.sym.toUpperCase() === s) ? `data-newscoin="${esc(s)}"` : `data-us="${esc(s)}"`}>${esc(s)}</span>`).join('')}</div></div>`;
+}
+function newsSegHtml(id) {
+  return `<div class="seg" id="${id}" style="margin-bottom:6px">${[['all', '全部'], ['macro', '總經'], ['stock', '美股'], ['crypto', '加密'], ['mine', '我的'], ['zh', '中文']].map(([v, n]) => `<button data-v="${v}" class="${newsView === v ? 'on' : ''}">${n}</button>`).join('')}</div>`;
+}
+function renderNews() {
+  const el = $('#newsList'); if (!el) return;
+  const N = state.news;
+  if (!N) { el.innerHTML = `<div class="empty">${esc(state.errors.news || '新聞載入中…')}</div>`; return; }
+  const L = newsFilter(N.list, newsView), n = newsMore ? 20 : 10;
+  el.innerHTML = newsSegHtml('newsSeg') + (L.length ? L.slice(0, n).map(newsRow).join('') : '<div class="empty">這個分類目前沒有新聞</div>') +
+    `<div class="flex" style="margin-top:8px">${L.length > 10 ? `<button class="btn ghost sm" id="newsMoreBtn">${newsMore ? '收合' : '顯示到 20 篇'}</button>` : ''}<span class="sp"></span><span class="note">${N.sources}/${NEWS_FEEDS.length} 個來源 · ${new Date(N.at).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' })} 更新</span></div>`;
+  const mb = $('#newsMoreBtn'); if (mb) mb.onclick = () => { newsMore = !newsMore; renderNews(); };
+  if (typeof mkView !== 'undefined' && mkView === 'news' && currentTab === 'market') renderMarket();
+}
+function newsFor(sym) {
+  const S = String(sym).toUpperCase();
+  return (state.news?.list || []).filter(c => c.syms.includes(S)).slice(0, 5);
+}
+
+/* ================= 美股時段 ================= */
+function usSession(now = new Date()) {
+  const p = Object.fromEntries(new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', weekday: 'short', hour: 'numeric', minute: 'numeric', hourCycle: 'h23' }).formatToParts(now).map(x => [x.type, x.value]));
+  const wd = p.weekday, m = (+p.hour) * 60 + (+p.minute), wk = !['Sat', 'Sun'].includes(wd);
+  const left = x => { const d = x - m; return (d >= 60 ? Math.floor(d / 60) + ' 小時 ' : '') + (d % 60) + ' 分'; };
+  if (wk && m >= 570 && m < 960) return { k: 'open', t: '美股盤中', d: '距收盤 ' + left(960), c: 'up' };
+  if (wk && m >= 240 && m < 570) return { k: 'pre', t: '美股盤前', d: '距開盤 ' + left(570), c: 'warn' };
+  if (wk && m >= 960 && m < 1200) return { k: 'post', t: '美股盤後', d: '盤後交易到 ' + left(1200) + '後結束', c: 'warn' };
+  return { k: 'closed', t: '美股休市', d: wd === 'Fri' && m >= 1200 || wd === 'Sat' || wd === 'Sun' && m < 1200 ? '週末，加密照常 24 小時交易' : '盤前 4:00（美東）開始', c: '' };
+}
+function renderSession() {
+  const el = $('#sessionBar'); if (!el) return;
+  const s = usSession(), tw = new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false });
+  el.innerHTML = `<span class="sdot ${s.c}"></span><b>${s.t}</b><span class="note">${s.d}</span><span class="sp"></span><span class="note">台北 ${tw}${s.k !== 'closed' ? '' : ''}</span>`;
+}
+
 /* ================= 載入流程 ================= */
 function renderTicker() {
   const items = [], m = state.markets || [];
@@ -2036,6 +2206,7 @@ async function loadAll(force) {
   if (currentTab === 'whale') loadWhales(force);
   hlCtx('xyz').then(x => { state.hlx = x; }).catch(() => {});
   loadScreener('c', force).then(() => loadScreener('u', force)).then(checkAlerts); loadEarnings(); fillUsFromHL();
+  loadNews(force).catch(e => { state.errors.news = '新聞讀取失敗：' + e.message; renderNews(); });
   checkAlerts();
 }
 
@@ -2057,6 +2228,11 @@ document.addEventListener('click', e => {
   if (e.target.closest('a[href]')) return;
   const p = e.target.closest('[data-pact]');
   if (p) return planAction(p.dataset.pact, p.dataset.id);
+  const ns = e.target.closest('#newsSeg button,#newsSeg2 button');
+  if (ns) { newsView = ns.dataset.v; renderNews(); if (currentTab === 'market') renderMarket(); return; }
+  if (e.target.closest('#newsRefresh')) { toast('更新新聞…'); loadNews(true); return; }
+  const nc = e.target.closest('[data-newscoin]');
+  if (nc) { const S = nc.dataset.newscoin, m = (state.markets || []).find(x => x.symbol.toUpperCase() === S) || state.wl.crypto.find(x => x.sym.toUpperCase() === S); if (m) { closeModal(); openDetail('coin', m.id); } return; }
   const t = e.target.closest('[data-opp],[data-tab],[data-open],[data-star],[data-edit],[data-close],[data-whale],[data-whalecoin],[data-coin],[data-us],.seg button');
   if (!t) return;
   if (t.dataset.opp) return oppPlan(t.dataset.opp);
@@ -2111,6 +2287,7 @@ goTab(startTab);
 renderAllViews();
 loadAll();
 setInterval(() => { if (!document.hidden) loadAll(); }, 5 * 60e3);
+setInterval(() => { if (!document.hidden) { renderSession(); if (Date.now() - (state.news?.at || 0) > 10 * 60e3) loadNews().catch(() => {}); } }, 30e3);
 setInterval(() => { if (!document.hidden) { fetchMarkets().then(d => { state.markets = d; checkAlerts(); }).catch(() => {}); hlCtx('xyz').then(x => { state.hlx = x; }).catch(() => {}); } }, 60e3);
 try { if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {}); } catch (e) {}
 </script>
