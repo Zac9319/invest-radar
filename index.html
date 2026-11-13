@@ -2349,8 +2349,11 @@ function ecoInfo(title, impact) {
 async function loadEco(force) {
   if (!force && Date.now() - ecoTry < 30 * 60e3) return renderEco();
   ecoTry = Date.now();
-  const get = n => getJSON('https://nfs.faireconomy.media/ff_calendar_' + n + '.json', force ? 10 * 60e3 : 3 * 36e5, true).catch(() => null);
-  const [a, b] = await Promise.all([get('thisweek'), get('nextweek')]);
+  // 由 GitHub Actions 定時抓好、存在自己儲存庫的週曆（來源網站不允許網頁直接抓）
+  const ttl = force ? 5 * 60e3 : 60 * 60e3, bust = '?t=' + Math.floor(Date.now() / ttl);
+  let a = await getJSON('https://raw.githubusercontent.com/Zac9319/invest-radar/main/calendar.json' + bust, ttl).catch(() => null);
+  if (!Array.isArray(a)) a = await getJSON('./calendar.json' + bust, ttl).catch(() => null);
+  const b = null;
   if (!Array.isArray(a) && !Array.isArray(b)) { state.eco = { list: [], err: true }; return renderEco(); }
   const list = [...(Array.isArray(a) ? a : []), ...(Array.isArray(b) ? b : [])].filter(x => x.country === 'USD' && x.impact !== 'Holiday')
     .map(x => ({ t: Date.parse(x.date), title: x.title, fc: x.forecast || '', pv: x.previous || '', ...ecoInfo(x.title, x.impact) })).filter(x => x.t);
