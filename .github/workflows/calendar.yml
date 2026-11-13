@@ -1,0 +1,54 @@
+name: 更新經濟數據週曆
+on:
+  schedule:
+    - cron: '17 */3 * * *'
+  workflow_dispatch:
+  push:
+    paths: ['.github/workflows/calendar.yml']
+permissions:
+  contents: write
+concurrency: calendar
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 抓取並合併週曆
+        run: |
+          python3 - <<'PY'
+          import json, urllib.request, datetime, os
+          now = datetime.datetime.now(datetime.timezone.utc)
+          def parse(s):
+              try: return datetime.datetime.fromisoformat(s)
+              except Exception: return None
+          old = []
+          if os.path.exists('calendar.json'):
+              try: old = json.load(open('calendar.json'))
+              except Exception: old = []
+          new = []
+          for n in ('thisweek', 'nextweek'):
+              try:
+                  req = urllib.request.Request('https://nfs.faireconomy.media/ff_calendar_%s.json' % n, headers={'User-Agent': 'Mozilla/5.0 invest-radar'})
+                  d = json.load(urllib.request.urlopen(req, timeout=30))
+                  if isinstance(d, list): new += d
+                  print(n, 'ok', len(d))
+              except Exception as e:
+                  print(n, 'failed', e)
+          keep = {}
+          for x in old + new:
+              if not isinstance(x, dict) or x.get('country') != 'USD': continue
+              t = parse(x.get('date', ''))
+              if not t or t < now - datetime.timedelta(days=2): continue
+              keep[(x.get('title'), x.get('date')[:10])] = {k: x.get(k, '') for k in ('title', 'country', 'date', 'impact', 'forecast', 'previous')}
+          out = sorted(keep.values(), key=lambda x: parse(x['date']))
+          if not new and not out:
+              raise SystemExit('來源讀不到，也沒有舊資料')
+          json.dump(out, open('calendar.json', 'w'), ensure_ascii=False, indent=0)
+          print('events', len(out))
+          PY
+      - name: 有變動才提交
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add calendar.json
+          git diff --cached --quiet || (git commit -m "更新經濟數據週曆" && git push)
