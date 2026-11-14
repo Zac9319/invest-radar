@@ -129,6 +129,52 @@ textarea{font:inherit;color:var(--text);background:var(--card2);border:1px solid
 .ev .d{min-width:62px;text-align:center;font-weight:700}.ev .d small{display:block;font-weight:400;font-size:11px;color:var(--mute)}
 .warnl{color:var(--accent);font-size:12px;margin-top:4px}
 .tab.legacy{display:none!important}
+/* ===== 像素風主題 ===== */
+@font-face{font-family:"Cubic 11";src:url(https://cdn.jsdelivr.net/gh/ACh-K/Cubic-11@main/fonts/web/Cubic_11.woff2) format("woff2");font-display:swap}
+:root.px{--bg:#12121c;--card:#1e1e30;--card2:#2c2c46;--line:#50507a;--text:#f4f1e4;--mute:#a3a3c2;--accent:#ffcc33;--blue:#4fb3ff;--up:#ff5470;--down:#3ddc84;--r:0px}
+:root.px.intl{--up:#3ddc84;--down:#ff5470}
+:root.px,:root.px body{font-family:"Cubic 11","PingFang TC","Noto Sans TC","Microsoft JhengHei",monospace;font-size:16px;line-height:1.5;-webkit-font-smoothing:none;font-smooth:never;text-rendering:optimizeSpeed;letter-spacing:0}
+:root.px body{background-image:linear-gradient(rgba(255,255,255,.035) 2px,transparent 2px),linear-gradient(90deg,rgba(255,255,255,.035) 2px,transparent 2px);background-size:16px 16px}
+:root.px *{border-radius:0!important;font-weight:400!important;font-synthesis:none}
+:root.px img{image-rendering:pixelated}
+:root.px header{background:var(--card);backdrop-filter:none;border-bottom:4px solid var(--line)}
+:root.px .logo{font-size:20px;text-shadow:2px 2px 0 #000}
+:root.px .hbtn{border:2px solid var(--line);box-shadow:2px 2px 0 #000;background:var(--card2)}
+:root.px .hbtn:active,:root.px .btn:active{transform:translate(2px,2px);box-shadow:none}
+:root.px h2{font-size:16px;margin:22px 2px 10px}
+:root.px h2::before{content:"▶";color:var(--accent);font-size:12px;text-shadow:none}
+:root.px .card,:root.px .kcard{border:2px solid var(--line);box-shadow:4px 4px 0 #000}
+:root.px .grid2{gap:12px}
+:root.px .kcard .v,:root.px .verdict{font-size:20px}
+:root.px .row,:root.px .news{border-bottom:2px dotted var(--line)}
+:root.px .row:last-child,:root.px .news:last-of-type{border-bottom:0}
+:root.px td{border-top:2px dotted var(--line)}
+:root.px .tag{border-width:2px;padding:0 6px}
+:root.px .act,:root.px .pill{border:2px solid currentColor;padding:0 6px}
+:root.px .btn{border:2px solid #000;box-shadow:inset -2px -2px 0 rgba(0,0,0,.3),inset 2px 2px 0 rgba(255,255,255,.4),2px 2px 0 #000}
+:root.px .btn.ghost{border-color:var(--line);box-shadow:inset -2px -2px 0 rgba(0,0,0,.35),inset 2px 2px 0 rgba(255,255,255,.08),2px 2px 0 #000}
+:root.px .seg{border-width:2px;padding:2px;gap:2px;box-shadow:4px 4px 0 #000}
+:root.px .seg button.on{background:var(--accent);color:#111}
+:root.px input,:root.px select,:root.px textarea{border:2px solid var(--line);font-family:inherit}
+:root.px input:focus,:root.px select:focus,:root.px textarea:focus{outline:2px solid var(--accent);outline-offset:0}
+:root.px nav{background:var(--card);backdrop-filter:none;border-top:4px solid var(--line)}
+:root.px nav button.on{background:var(--card2);box-shadow:inset 0 4px 0 var(--accent)}
+:root.px nav button i{font-size:20px}
+:root.px nav .dot{border:2px solid #000;height:18px;min-width:18px;font-size:12px}
+:root.px .sheet{border:4px solid var(--line);border-bottom:0}
+:root.px .modal{background:rgba(0,0,0,.78)}
+:root.px .toast{border:2px solid var(--accent);box-shadow:4px 4px 0 #000;font-size:16px}
+:root.px .alerts .al{border:2px solid var(--line)}
+:root.px .spin{animation-timing-function:steps(8)}
+:root.px .sdot{width:8px;height:8px}
+:root.px .sdot.up{box-shadow:none;animation:pxblink 1s steps(2,start) infinite}@keyframes pxblink{50%{opacity:.25}}
+:root.px .mbar{height:12px;border:2px solid var(--line);background:linear-gradient(90deg,var(--down) 0 20%,color-mix(in srgb,var(--down) 45%,var(--card2)) 20% 40%,var(--card2) 40% 60%,color-mix(in srgb,var(--up) 45%,var(--card2)) 60% 80%,var(--up) 80%)}
+:root.px .mbar i{top:-6px;width:4px;height:20px;box-shadow:2px 0 0 #000}
+:root.px .note,:root.px .tag,:root.px .act,:root.px .pill,:root.px th,:root.px table,:root.px h2 small,:root.px .kcard .l,:root.px .kcard .c,:root.px .field label,:root.px nav button,:root.px .updated,:root.px .legend,:root.px .row .nm span,:root.px .row .px div+div,:root.px .err,:root.px .adv,:root.px .btn.sm,:root.px .meta,:root.px .lh small{font-size:12px}
+:root.px .row .nm b,:root.px .row .px,:root.px .seg button,:root.px .empty,:root.px .ticker,:root.px .alerts .al,:root.px .lh b{font-size:16px}
+:root.px #scrCtl select,:root.px #scrCtl .btn{font-size:12px}
+:root.px [style*="font-size:13px"]{font-size:12px!important}
+:root.px [style*="font-size:18px"]{font-size:20px!important}
 </style>
 </head>
 <body>
@@ -1300,7 +1346,7 @@ function openSettings() {
       <div class="field"><label>最低帳戶資金</label><select id="sWM">${[[5e5, '$50 萬'], [1e6, '$100 萬'], [5e6, '$500 萬'], [1e7, '$1,000 萬']].map(([v, l]) => `<option value="${v}" ${v === s.whaleMin ? 'selected' : ''}>${l}</option>`).join('')}</select></div></div>
       <label class="chk"><input type="checkbox" id="sHft" ${s.exHft ? 'checked' : ''}> 排除高頻做市商（月成交量超過帳戶 100 倍）</label></div>
     <h2>顯示</h2><div class="card grid2"><div class="field"><label>漲跌顏色</label><select id="sCol"><option value="tw">台灣（紅漲綠跌）</option><option value="intl" ${s.color === 'intl' ? 'selected' : ''}>國際（綠漲紅跌）</option></select></div>
-      <div class="field"><label>主題</label><select id="sTheme"><option value="dark">深色</option><option value="light" ${s.theme === 'light' ? 'selected' : ''}>淺色</option></select></div>
+      <div class="field"><label>主題</label><select id="sTheme"><option value="pixel" ${s.theme === 'pixel' ? 'selected' : ''}>像素風</option><option value="dark" ${s.theme === 'dark' ? 'selected' : ''}>深色</option><option value="light" ${s.theme === 'light' ? 'selected' : ''}>淺色</option></select></div>
       <div class="field"><label>字體</label><select id="sFs">${[['14px', '小'], ['15px', '中'], ['17px', '大']].map(([v, l]) => `<option value="${v}" ${v === s.fs ? 'selected' : ''}>${l}</option>`).join('')}</select></div></div>
     <h2>備份與還原 <small>電腦和手機之間搬移資料</small></h2><div class="card">
       <p class="note">備份包含自選清單、持倉、交易計畫與日誌、風控與顯示設定。複製後貼到另一台裝置的這裡按「還原」。</p>
@@ -1320,10 +1366,11 @@ function openSettings() {
   $('#sClear').onclick = () => { store.clearCache(); Object.keys(mem).forEach(k => delete mem[k]); closeModal(); toast('快取已清除，重新載入'); loadAll(true); };
 }
 function applyDisplay() {
+  if (!store.get('pxmig', 0)) { store.set('pxmig', 1); state.set.theme = 'pixel'; saveSet(); } // 改版：預設切到像素風一次，之後可在設定改回
   const r = document.documentElement;
-  r.classList.toggle('intl', state.set.color === 'intl'); r.classList.toggle('light', state.set.theme === 'light');
+  r.classList.toggle('intl', state.set.color === 'intl'); r.classList.toggle('light', state.set.theme === 'light'); r.classList.toggle('px', state.set.theme === 'pixel');
   r.style.setProperty('--fs', state.set.fs);
-  document.querySelector('meta[name=theme-color]').content = state.set.theme === 'light' ? '#f3f5f9' : '#0b0f17';
+  document.querySelector('meta[name=theme-color]').content = state.set.theme === 'light' ? '#f3f5f9' : state.set.theme === 'pixel' ? '#1e1e30' : '#0b0f17';
 }
 
 /* ================= 作戰首頁 ================= */
