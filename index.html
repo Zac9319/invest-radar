@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <meta name="theme-color" content="#0b0f17">
 <link rel="manifest" href="manifest.webmanifest">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Share+Tech+Mono&display=swap">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -129,6 +130,60 @@ textarea{font:inherit;color:var(--text);background:var(--card2);border:1px solid
 .ev .d{min-width:62px;text-align:center;font-weight:700}.ev .d small{display:block;font-weight:400;font-size:11px;color:var(--mute)}
 .warnl{color:var(--accent);font-size:12px;margin-top:4px}
 .tab.legacy{display:none!important}
+/* ===== 賽博龐克主題 ===== */
+:root.cy{--bg:#000;--card:#0e131f;--card2:#151d2e;--line:#0c4450;--text:#f3f4f6;--mute:#9ca3af;--accent:#facc15;--blue:#22d3ee;--up:#ff4d6d;--down:#4ade80;--r:0px;--cy:#22d3ee;--fu:#d946ef;--ob:Orbitron,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif}
+:root.cy.intl{--up:#4ade80;--down:#ff4d6d}
+:root.cy,:root.cy body{font-family:"Share Tech Mono","PingFang TC","Noto Sans TC","Microsoft JhengHei",monospace;background-color:#000}
+:root.cy body{background-image:repeating-linear-gradient(0deg,rgba(255,255,255,.022) 0 1px,transparent 1px 3px),radial-gradient(ellipse 120% 50% at 50% 0,rgba(217,70,239,.14),transparent 70%);background-attachment:fixed}
+:root.cy *{border-radius:0!important}
+:root.cy a{color:var(--cy)}
+:root.cy header{background:rgba(0,0,0,.86);border-bottom:1px solid rgba(34,211,238,.35)}
+:root.cy .logo{font-family:var(--ob);font-weight:900;letter-spacing:.06em;color:#e879f9;text-shadow:0 0 8px var(--fu),0 0 22px var(--fu);display:inline-block;animation:cyglitch 5s steps(1) infinite}
+:root.cy .logo span{color:var(--cy);text-shadow:0 0 8px var(--cy),0 0 22px var(--cy)}
+:root.cy .logo sup{color:var(--accent);text-shadow:none;font-family:"Share Tech Mono",monospace}
+:root.cy .logo sup::before{content:"["}:root.cy .logo sup::after{content:"]"}
+@keyframes cyglitch{0%,93%,100%{transform:translate(0)}94%{transform:translate(-2px,1px)}95%{transform:translate(2px,-1px)}96%{transform:translate(-1px,-1px)}97%{transform:translate(1px,1px)}}
+@media(prefers-reduced-motion:reduce){:root.cy .logo{animation:none}}
+:root.cy .hbtn{background:transparent;border:1px solid rgba(34,211,238,.45);color:var(--cy)}
+:root.cy .updated{color:var(--cy);opacity:.7}
+:root.cy h2{font-family:var(--ob);font-weight:700;letter-spacing:.05em;color:#a5f3fc;margin-top:22px}
+:root.cy h2::before{content:">>";color:var(--fu);text-shadow:0 0 8px var(--fu);font-family:"Share Tech Mono",monospace}
+:root.cy h2 small{font-family:"Share Tech Mono","PingFang TC",monospace;letter-spacing:0;color:var(--mute)}
+:root.cy .card,:root.cy .kcard{background:rgba(17,24,39,.8);border:1px solid rgba(34,211,238,.3);position:relative}
+:root.cy .card::before,:root.cy .kcard::before{content:"";position:absolute;left:0;top:-1px;height:2px;width:100%;background:linear-gradient(90deg,var(--kc,var(--cy)),transparent 70%);pointer-events:none}
+:root.cy .kcard:nth-child(4n+2){--kc:var(--fu);border-color:rgba(217,70,239,.3)}
+:root.cy .kcard:nth-child(4n+3){--kc:#facc15;border-color:rgba(250,204,21,.3)}
+:root.cy .kcard:nth-child(4n){--kc:#4ade80;border-color:rgba(74,222,128,.3)}
+:root.cy .kcard .l{color:var(--kc,var(--cy));text-transform:uppercase}
+:root.cy .kcard .l::before{content:"// "}
+:root.cy .kcard .v{font-family:var(--ob);font-weight:500;font-size:19px;letter-spacing:.02em}
+:root.cy .verdict{font-family:var(--ob)}
+:root.cy .row,:root.cy .news{border-bottom-color:rgba(34,211,238,.16)}
+:root.cy td{border-top-color:rgba(34,211,238,.16)}
+:root.cy th{color:var(--cy);text-transform:uppercase}
+:root.cy .tag{background:transparent;border-color:rgba(156,163,175,.35)}
+:root.cy .tag.sym{border-color:rgba(34,211,238,.4);color:var(--cy)}
+:root.cy .tag.sym.on{border-color:var(--fu);color:#e879f9;box-shadow:0 0 8px rgba(217,70,239,.4)}
+:root.cy .act,:root.cy .pill{border:1px solid currentColor}
+:root.cy .btn{font-family:var(--ob);letter-spacing:.05em;color:#fff;background:linear-gradient(90deg,#c026d3,#d946ef);border:1px solid #e879f9;box-shadow:0 6px 16px -4px rgba(217,70,239,.6)}
+:root.cy .btn:active{filter:brightness(1.25)}
+:root.cy .btn.ghost{background:transparent;color:var(--cy);border:1px solid rgba(34,211,238,.7);box-shadow:none}
+:root.cy .btn.ghost:active{background:rgba(34,211,238,.15)}
+:root.cy .seg{background:rgba(17,24,39,.8);border-color:rgba(34,211,238,.3)}
+:root.cy .seg button.on{background:rgba(34,211,238,.14);color:var(--cy);box-shadow:inset 0 -2px 0 var(--cy);text-shadow:0 0 8px rgba(34,211,238,.7)}
+:root.cy input,:root.cy select,:root.cy textarea{background:#000;border:1px solid rgba(34,211,238,.4);font-family:inherit}
+:root.cy input:focus,:root.cy select:focus,:root.cy textarea:focus{outline:0;border-color:var(--cy);box-shadow:0 0 12px rgba(34,211,238,.45)}
+:root.cy nav{background:rgba(0,0,0,.92);border-top:1px solid rgba(217,70,239,.45)}
+:root.cy nav button.on{color:#e879f9;text-shadow:0 0 8px var(--fu);box-shadow:inset 0 2px 0 var(--fu)}
+:root.cy .sheet{background:#05070c;border:1px solid rgba(217,70,239,.55);border-bottom:0;box-shadow:0 0 36px rgba(217,70,239,.3)}
+:root.cy .modal{background:rgba(0,0,0,.8)}
+:root.cy .toast{background:#000;border:1px solid var(--cy);color:var(--cy);box-shadow:0 0 16px rgba(34,211,238,.5)}
+:root.cy .alerts .al{background:rgba(0,0,0,.5);border:1px solid rgba(34,211,238,.2)}
+:root.cy .sdot.up{background:#4ade80;box-shadow:0 0 8px #4ade80}
+:root.cy .sdot.warn{box-shadow:0 0 8px var(--accent)}
+:root.cy .empty::before{content:"> ";color:var(--cy)}
+:root.cy .news .note a{color:var(--cy)}
+:root.cy .star.on{text-shadow:0 0 8px var(--accent)}
 /* ===== 像素風主題 ===== */
 @font-face{font-family:"Cubic 11";src:url(https://cdn.jsdelivr.net/gh/ACh-K/Cubic-11@main/fonts/web/Cubic_11.woff2) format("woff2");font-display:swap}
 :root.px{--bg:#12121c;--card:#1e1e30;--card2:#2c2c46;--line:#50507a;--text:#f4f1e4;--mute:#a3a3c2;--accent:#ffcc33;--blue:#4fb3ff;--up:#ff5470;--down:#3ddc84;--r:0px}
@@ -1346,7 +1401,7 @@ function openSettings() {
       <div class="field"><label>最低帳戶資金</label><select id="sWM">${[[5e5, '$50 萬'], [1e6, '$100 萬'], [5e6, '$500 萬'], [1e7, '$1,000 萬']].map(([v, l]) => `<option value="${v}" ${v === s.whaleMin ? 'selected' : ''}>${l}</option>`).join('')}</select></div></div>
       <label class="chk"><input type="checkbox" id="sHft" ${s.exHft ? 'checked' : ''}> 排除高頻做市商（月成交量超過帳戶 100 倍）</label></div>
     <h2>顯示</h2><div class="card grid2"><div class="field"><label>漲跌顏色</label><select id="sCol"><option value="tw">台灣（紅漲綠跌）</option><option value="intl" ${s.color === 'intl' ? 'selected' : ''}>國際（綠漲紅跌）</option></select></div>
-      <div class="field"><label>主題</label><select id="sTheme"><option value="pixel" ${s.theme === 'pixel' ? 'selected' : ''}>像素風</option><option value="dark" ${s.theme === 'dark' ? 'selected' : ''}>深色</option><option value="light" ${s.theme === 'light' ? 'selected' : ''}>淺色</option></select></div>
+      <div class="field"><label>主題</label><select id="sTheme"><option value="cyber" ${s.theme === 'cyber' ? 'selected' : ''}>賽博龐克</option><option value="pixel" ${s.theme === 'pixel' ? 'selected' : ''}>像素風</option><option value="dark" ${s.theme === 'dark' ? 'selected' : ''}>深色</option><option value="light" ${s.theme === 'light' ? 'selected' : ''}>淺色</option></select></div>
       <div class="field"><label>字體</label><select id="sFs">${[['14px', '小'], ['15px', '中'], ['17px', '大']].map(([v, l]) => `<option value="${v}" ${v === s.fs ? 'selected' : ''}>${l}</option>`).join('')}</select></div></div>
     <h2>備份與還原 <small>電腦和手機之間搬移資料</small></h2><div class="card">
       <p class="note">備份包含自選清單、持倉、交易計畫與日誌、風控與顯示設定。複製後貼到另一台裝置的這裡按「還原」。</p>
@@ -1366,11 +1421,11 @@ function openSettings() {
   $('#sClear').onclick = () => { store.clearCache(); Object.keys(mem).forEach(k => delete mem[k]); closeModal(); toast('快取已清除，重新載入'); loadAll(true); };
 }
 function applyDisplay() {
-  if (!store.get('pxmig', 0)) { store.set('pxmig', 1); state.set.theme = 'pixel'; saveSet(); } // 改版：預設切到像素風一次，之後可在設定改回
+  if (!store.get('cymig', 0)) { store.set('cymig', 1); state.set.theme = 'cyber'; saveSet(); } // 改版：預設切到賽博龐克一次，之後可在設定改回
   const r = document.documentElement;
-  r.classList.toggle('intl', state.set.color === 'intl'); r.classList.toggle('light', state.set.theme === 'light'); r.classList.toggle('px', state.set.theme === 'pixel');
+  r.classList.toggle('intl', state.set.color === 'intl'); r.classList.toggle('light', state.set.theme === 'light'); r.classList.toggle('px', state.set.theme === 'pixel'); r.classList.toggle('cy', state.set.theme === 'cyber');
   r.style.setProperty('--fs', state.set.fs);
-  document.querySelector('meta[name=theme-color]').content = state.set.theme === 'light' ? '#f3f5f9' : state.set.theme === 'pixel' ? '#1e1e30' : '#0b0f17';
+  document.querySelector('meta[name=theme-color]').content = state.set.theme === 'light' ? '#f3f5f9' : state.set.theme === 'pixel' ? '#1e1e30' : state.set.theme === 'cyber' ? '#000000' : '#0b0f17';
 }
 
 /* ================= 作戰首頁 ================= */
