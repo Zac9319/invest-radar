@@ -1,37 +1,5 @@
 [
 {
-"title": "Unemployment Claims",
-"country": "USD",
-"date": "2026-11-12T08:30:00-05:00",
-"impact": "Medium",
-"forecast": "194K",
-"previous": "189K"
-},
-{
-"title": "FOMC Member Hammack Speaks",
-"country": "USD",
-"date": "2026-11-12T08:30:00-05:00",
-"impact": "Low",
-"forecast": "",
-"previous": ""
-},
-{
-"title": "Existing Home Sales",
-"country": "USD",
-"date": "2026-11-12T10:00:00-05:00",
-"impact": "Low",
-"forecast": "3.89M",
-"previous": "3.99M"
-},
-{
-"title": "FOMC Member Barr Speaks",
-"country": "USD",
-"date": "2026-11-12T10:00:00-05:00",
-"impact": "Low",
-"forecast": "",
-"previous": ""
-},
-{
 "title": "FOMC Member Goolsbee Speaks",
 "country": "USD",
 "date": "2026-11-12T11:15:00-05:00",
