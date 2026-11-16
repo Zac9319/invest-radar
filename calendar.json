@@ -1,13 +1,5 @@
 [
 {
-"title": "FOMC Member Jefferson Speaks",
-"country": "USD",
-"date": "2026-11-13T19:00:00-05:00",
-"impact": "Low",
-"forecast": "",
-"previous": ""
-},
-{
 "title": "FOMC Member Barr Speaks",
 "country": "USD",
 "date": "2026-11-16T05:00:00-05:00",
@@ -307,7 +299,7 @@
 "title": "FOMC Member Waller Speaks",
 "country": "USD",
 "date": "2026-11-20T08:25:00-05:00",
-"impact": "Medium",
+"impact": "Low",
 "forecast": "",
 "previous": ""
 },
