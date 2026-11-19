@@ -1,45 +1,5 @@
 [
 {
-"title": "FOMC Member Musalem Speaks",
-"country": "USD",
-"date": "2026-11-17T07:30:00-05:00",
-"impact": "Low",
-"forecast": "",
-"previous": ""
-},
-{
-"title": "ADP Weekly Employment Change",
-"country": "USD",
-"date": "2026-11-17T08:15:00-05:00",
-"impact": "Low",
-"forecast": "",
-"previous": "19.8K"
-},
-{
-"title": "Core Retail Sales m/m",
-"country": "USD",
-"date": "2026-11-17T08:30:00-05:00",
-"impact": "High",
-"forecast": "0.4%",
-"previous": "0.9%"
-},
-{
-"title": "Retail Sales m/m",
-"country": "USD",
-"date": "2026-11-17T08:30:00-05:00",
-"impact": "High",
-"forecast": "0.1%",
-"previous": "0.8%"
-},
-{
-"title": "Import Prices m/m",
-"country": "USD",
-"date": "2026-11-17T08:30:00-05:00",
-"impact": "Low",
-"forecast": "0.7%",
-"previous": "1.1%"
-},
-{
 "title": "FOMC Member Waller Speaks",
 "country": "USD",
 "date": "2026-11-17T09:10:00-05:00",
