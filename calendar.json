@@ -38,5 +38,197 @@
 "impact": "Low",
 "forecast": "",
 "previous": ""
+},
+{
+"title": "Flash Manufacturing PMI",
+"country": "USD",
+"date": "2026-11-23T09:45:00-05:00",
+"impact": "Medium",
+"forecast": "54.5",
+"previous": "56.0"
+},
+{
+"title": "Flash Services PMI",
+"country": "USD",
+"date": "2026-11-23T09:45:00-05:00",
+"impact": "Medium",
+"forecast": "55.6",
+"previous": "57.9"
+},
+{
+"title": "FOMC Member Williams Speaks",
+"country": "USD",
+"date": "2026-11-23T16:00:00-05:00",
+"impact": "Low",
+"forecast": "",
+"previous": ""
+},
+{
+"title": "ADP Weekly Employment Change",
+"country": "USD",
+"date": "2026-11-24T08:15:00-05:00",
+"impact": "Low",
+"forecast": "",
+"previous": "23.8K"
+},
+{
+"title": "HPI m/m",
+"country": "USD",
+"date": "2026-11-24T09:00:00-05:00",
+"impact": "Low",
+"forecast": "0.2%",
+"previous": "0.3%"
+},
+{
+"title": "S&P/CS Composite-20 HPI y/y",
+"country": "USD",
+"date": "2026-11-24T09:00:00-05:00",
+"impact": "Low",
+"forecast": "2.7%",
+"previous": "2.7%"
+},
+{
+"title": "CB Consumer Confidence",
+"country": "USD",
+"date": "2026-11-24T10:00:00-05:00",
+"impact": "Medium",
+"forecast": "92.1",
+"previous": "91.7"
+},
+{
+"title": "Richmond Manufacturing Index",
+"country": "USD",
+"date": "2026-11-24T10:00:00-05:00",
+"impact": "Low",
+"forecast": "-3",
+"previous": "-2"
+},
+{
+"title": "API Weekly Statistical Bulletin",
+"country": "USD",
+"date": "2026-11-24T16:30:00-05:00",
+"impact": "Low",
+"forecast": "",
+"previous": ""
+},
+{
+"title": "Core PCE Price Index m/m",
+"country": "USD",
+"date": "2026-11-25T08:30:00-05:00",
+"impact": "High",
+"forecast": "0.3%",
+"previous": "0.3%"
+},
+{
+"title": "Prelim GDP q/q",
+"country": "USD",
+"date": "2026-11-25T08:30:00-05:00",
+"impact": "High",
+"forecast": "3.5%",
+"previous": "3.4%"
+},
+{
+"title": "Prelim GDP Price Index q/q",
+"country": "USD",
+"date": "2026-11-25T08:30:00-05:00",
+"impact": "Medium",
+"forecast": "2.3%",
+"previous": "2.3%"
+},
+{
+"title": "Unemployment Claims",
+"country": "USD",
+"date": "2026-11-25T08:30:00-05:00",
+"impact": "Medium",
+"forecast": "201K",
+"previous": "203K"
+},
+{
+"title": "Core Durable Goods Orders m/m",
+"country": "USD",
+"date": "2026-11-25T08:30:00-05:00",
+"impact": "Low",
+"forecast": "0.5%",
+"previous": "0.5%"
+},
+{
+"title": "Durable Goods Orders m/m",
+"country": "USD",
+"date": "2026-11-25T08:30:00-05:00",
+"impact": "Low",
+"forecast": "0.5%",
+"previous": "1.8%"
+},
+{
+"title": "Personal Income m/m",
+"country": "USD",
+"date": "2026-11-25T08:30:00-05:00",
+"impact": "Low",
+"forecast": "0.4%",
+"previous": "0.2%"
+},
+{
+"title": "Personal Spending m/m",
+"country": "USD",
+"date": "2026-11-25T08:30:00-05:00",
+"impact": "Low",
+"forecast": "0.4%",
+"previous": "0.5%"
+},
+{
+"title": "New Home Sales",
+"country": "USD",
+"date": "2026-11-25T10:00:00-05:00",
+"impact": "Low",
+"forecast": "649K",
+"previous": "676K"
+},
+{
+"title": "Crude Oil Inventories",
+"country": "USD",
+"date": "2026-11-25T10:30:00-05:00",
+"impact": "Low",
+"forecast": "",
+"previous": "3.4M"
+},
+{
+"title": "Natural Gas Storage",
+"country": "USD",
+"date": "2026-11-25T12:00:00-05:00",
+"impact": "Low",
+"forecast": "",
+"previous": "20B"
+},
+{
+"title": "Beige Book",
+"country": "USD",
+"date": "2026-11-25T14:00:00-05:00",
+"impact": "Low",
+"forecast": "",
+"previous": ""
+},
+{
+"title": "Bank Holiday",
+"country": "USD",
+"date": "2026-11-26T08:00:00-05:00",
+"impact": "Holiday",
+"forecast": "",
+"previous": ""
+},
+{
+"title": "Goods Trade Balance",
+"country": "USD",
+"date": "2026-11-27T08:30:00-05:00",
+"impact": "Low",
+"forecast": "-134.4B",
+"previous": "-134.9B"
+},
+{
+"title": "Prelim Wholesale Inventories m/m",
+"country": "USD",
+"date": "2026-11-27T08:30:00-05:00",
+"impact": "Low",
+"forecast": "0.7%",
+"previous": "0.6%"
 }
 ]
