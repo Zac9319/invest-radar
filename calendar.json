@@ -1,29 +1,5 @@
 [
 {
-"title": "FOMC Member Waller Speaks",
-"country": "USD",
-"date": "2026-11-20T08:25:00-05:00",
-"impact": "Low",
-"forecast": "",
-"previous": ""
-},
-{
-"title": "Revised UoM Consumer Sentiment",
-"country": "USD",
-"date": "2026-11-20T10:00:00-05:00",
-"impact": "Medium",
-"forecast": "51.7",
-"previous": "51.0"
-},
-{
-"title": "Revised UoM Inflation Expectations",
-"country": "USD",
-"date": "2026-11-20T10:00:00-05:00",
-"impact": "Medium",
-"forecast": "",
-"previous": "4.3%"
-},
-{
 "title": "President Trump Speaks",
 "country": "USD",
 "date": "2026-11-20T12:00:00-05:00",
