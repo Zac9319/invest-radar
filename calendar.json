@@ -1,21 +1,5 @@
 [
 {
-"title": "Flash Manufacturing PMI",
-"country": "USD",
-"date": "2026-11-23T09:45:00-05:00",
-"impact": "Medium",
-"forecast": "54.5",
-"previous": "56.0"
-},
-{
-"title": "Flash Services PMI",
-"country": "USD",
-"date": "2026-11-23T09:45:00-05:00",
-"impact": "Medium",
-"forecast": "55.6",
-"previous": "57.9"
-},
-{
 "title": "FOMC Member Williams Speaks",
 "country": "USD",
 "date": "2026-11-23T16:00:00-05:00",
