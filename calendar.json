@@ -1,21 +1,5 @@
 [
 {
-"title": "New Home Sales",
-"country": "USD",
-"date": "2026-11-25T10:00:00-05:00",
-"impact": "Low",
-"forecast": "650K",
-"previous": "676K"
-},
-{
-"title": "Crude Oil Inventories",
-"country": "USD",
-"date": "2026-11-25T10:30:00-05:00",
-"impact": "Low",
-"forecast": "2.0M",
-"previous": "3.4M"
-},
-{
 "title": "Natural Gas Storage",
 "country": "USD",
 "date": "2026-11-25T12:00:00-05:00",
